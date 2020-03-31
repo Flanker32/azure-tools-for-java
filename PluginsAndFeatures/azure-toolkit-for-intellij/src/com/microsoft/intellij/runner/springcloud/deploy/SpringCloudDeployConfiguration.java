@@ -139,7 +139,7 @@ public class SpringCloudDeployConfiguration extends AzureRunConfigurationBase<Sp
     }
 
     public void setArtifactPath(String artifactPath) {
-        springCloudModel.setArtifactPath(artifactPath);
+            springCloudModel.setArtifactPath(artifactPath);
     }
 
     public void setPublic(boolean isPublic) {
