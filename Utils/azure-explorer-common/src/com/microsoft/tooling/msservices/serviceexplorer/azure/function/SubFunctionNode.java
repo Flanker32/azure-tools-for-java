@@ -22,10 +22,15 @@
 
 package com.microsoft.tooling.msservices.serviceexplorer.azure.function;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.microsoft.azure.functions.annotation.AuthorizationLevel;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.FunctionEnvelope;
+import com.microsoft.azuretools.authmanage.AuthMethodManager;
 import com.microsoft.azuretools.azurecommons.helpers.AzureCmdException;
+import com.microsoft.azuretools.core.mvp.model.springcloud.IdHelper;
+import com.microsoft.azuretools.sdkmanage.AzureManager;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
 import com.microsoft.tooling.msservices.serviceexplorer.NodeActionEvent;
@@ -33,12 +38,14 @@ import com.microsoft.tooling.msservices.serviceexplorer.NodeActionListener;
 import com.microsoft.tooling.msservices.serviceexplorer.WrappedTelemetryNodeActionListener;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -92,8 +99,7 @@ public class SubFunctionNode extends Node {
     // Refers https://docs.microsoft.com/mt-mt/Azure/azure-functions/functions-manually-run-non-http
     private void triggerNoneHttpTrigger() {
         try {
-            final Map<String, String> keyMap = functionApp.listFunctionKeys(this.name);
-            final String masterKey = keyMap.get(MASTER_FUNCTION_KEY);
+            final String masterKey = getFunctionMasterKey();
             final String targetUrl = String.format(NONE_HTTP_TRIGGER_URL, functionApp.defaultHostName(), this.name);
             final HttpPost request = new HttpPost(targetUrl);
             request.setHeader("x-functions-key", masterKey);
@@ -108,9 +114,21 @@ public class SubFunctionNode extends Node {
         }
     }
 
-    //
-    private void getFunctionMasterKey(){
+    // work around for API getMasterKey failed
+    private String getFunctionMasterKey() throws IOException {
+        final AzureManager azureManager = AuthMethodManager.getInstance().getAzureManager();
+        final String subscriptionId = IdHelper.getSubscriptionId(functionApp.id());
+        final String resourceGroup = IdHelper.getResourceGroup(functionApp.id());
+        final String tenant = azureManager.getTenantIdBySubscription(subscriptionId);
+        final String authToken = azureManager.getAccessToken(tenant);
+        final String targetUrl = String.format("https://management.azure.com/subscriptions/%s/resourceGroups/%s/" +
+                "providers/Microsoft.Web/sites/%s/host/default/listkeys?api-version=2019-08-01", subscriptionId, resourceGroup, functionApp.name());
 
+        final HttpPost request = new HttpPost(targetUrl);
+        request.setHeader("Authorization", "Bearer " + authToken);
+        CloseableHttpResponse response = HttpClients.createDefault().execute(request);
+        JsonObject jsonObject = new Gson().fromJson(new InputStreamReader(response.getEntity().getContent()),  JsonObject.class);
+        return jsonObject.get("masterKey").getAsString();
     }
 
     private void triggerHttpTrigger(Map binding) {
