@@ -45,19 +45,17 @@ import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.DocumentEvent;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class EnvironmentVariablesTextFieldWithBrowseButton extends TextFieldWithBrowseButton
         implements UserActivityProviderComponent {
-    private Map<String, String> environmentVariables = new LinkedHashMap<>();
     private final List<ChangeListener> myListeners = ContainerUtil.createLockFreeCopyOnWriteList();
 
     public EnvironmentVariablesTextFieldWithBrowseButton() {
         super();
         addActionListener(e -> {
-            if (this.isEnabled()) {
+            if (this.isEditable()) {
                 final EnvironmentVariablesEditDialog variablesDialog = new EnvironmentVariablesEditDialog(
                         getEnvironmentVariables());
                 if (variablesDialog.showAndGet()) {
@@ -73,9 +71,7 @@ public class EnvironmentVariablesTextFieldWithBrowseButton extends TextFieldWith
         getTextField().getDocument().addDocumentListener(new DocumentAdapter() {
             @Override
             protected void textChanged(@NotNull DocumentEvent e) {
-                if (!StringUtil.equals(stringifyEnvs(environmentVariables), getText())) {
-                    fireStateChanged();
-                }
+                fireStateChanged();
             }
         });
     }
@@ -85,7 +81,6 @@ public class EnvironmentVariablesTextFieldWithBrowseButton extends TextFieldWith
     }
 
     public void setEnvironmentVariables(Map<String, String> environmentVariables) {
-        this.environmentVariables = environmentVariables;
         this.setText(stringifyEnvs(environmentVariables));
     }
 
