@@ -33,11 +33,13 @@ import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.ListCellRendererWrapper;
 import com.intellij.ui.PopupMenuListenerAdapter;
 import com.microsoft.azure.management.appservice.DeploymentSlot;
+import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azuretools.core.mvp.model.ResourceEx;
 import com.microsoft.azuretools.utils.WebAppUtils;
 import com.microsoft.intellij.runner.AzureSettingPanel;
+import com.microsoft.intellij.runner.functions.deploy.ui.creation.FunctionCreationDialog;
 import com.microsoft.intellij.runner.webapp.Constants;
 import com.microsoft.intellij.runner.webapp.webappconfig.WebAppConfiguration;
 import com.microsoft.intellij.runner.webapp.webappconfig.slimui.creation.WebAppCreationDialog;
@@ -408,23 +410,19 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
     }
 
     private void createNewWebApp() {
-        final WebAppCreationDialog dialog = new WebAppCreationDialog(this.webAppConfiguration);
-        dialog.pack();
-        dialog.setLocationRelativeTo(this.getMainPanel());
-        dialog.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosed(WindowEvent e) {
-                super.windowClosed(e);
-                WebApp newWebApp = dialog.getCreatedWebApp();
-                if (newWebApp != null) {
-                    webAppConfiguration.setWebAppId(newWebApp.id());
-                    refreshWebApps(true);
-                } else {
-                    refreshWebApps(false);
-                }
+        final WebAppCreationDialog dialog = new WebAppCreationDialog(this.project, this.webAppConfiguration);
+        if (dialog.showAndGet()) {
+            final WebApp webApp = dialog.getCreatedWebApp();
+            if (webApp != null) {
+                webAppConfiguration.setWebAppId(webApp.id());
+                refreshWebApps(true);
+            } else {
+                // In case created failed
+                refreshWebApps(false);
             }
-        });
-        dialog.setVisible(true);
+        } else {
+            refreshWebApps(false);
+        }
     }
 
     private void toggleSlotPanel(boolean isDeployToSlot) {
