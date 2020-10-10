@@ -34,6 +34,7 @@ import com.intellij.ui.PopupMenuListenerAdapter;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azuretools.core.mvp.model.ResourceEx;
 import com.microsoft.intellij.runner.AzureSettingPanel;
+import com.microsoft.intellij.runner.components.DeployTargetComboBox;
 import com.microsoft.intellij.runner.functions.component.FunctionAppCombineBoxEditor;
 import com.microsoft.intellij.runner.functions.component.FunctionAppCombineBoxRender;
 import com.microsoft.intellij.runner.functions.component.table.AppSettingsTable;
@@ -70,6 +71,7 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
     private HyperlinkLabel lblCreateFunctionApp;
     private JPanel pnlAppSettings;
     private JComboBox<Module> cbFunctionModule;
+    private DeployTargetComboBox<Module> deployTargetComboBox;
     private AppSettingsTable appSettingsTable;
 
     // presenter
@@ -263,6 +265,18 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
         final String localSettingPath = Paths.get(project.getBasePath(), "local.settings.json").toString();
         appSettingsTable = new AppSettingsTable(localSettingPath);
         pnlAppSettings = AppSettingsTableUtils.createAppSettingPanel(appSettingsTable);
+
+        deployTargetComboBox = new DeployTargetComboBox<Module>(Arrays.asList(FunctionUtils.listFunctionModules(project))) {
+            @Override
+            public String getComboBoxItemDescription(final Module selectedItem) {
+                return selectedItem.getName();
+            }
+
+            @Override
+            public Icon getComboBoxItemIcon(final Module selectedItem) {
+                return AllIcons.Nodes.Module;
+            }
+        };
     }
 
     private void fillModules() {

@@ -27,6 +27,7 @@ import com.intellij.ide.IdeTooltipManager;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Comparing;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.ui.HideableDecorator;
 import com.intellij.ui.HyperlinkLabel;
@@ -38,10 +39,13 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azuretools.core.mvp.model.ResourceEx;
 import com.microsoft.azuretools.utils.WebAppUtils;
 import com.microsoft.intellij.runner.AzureSettingPanel;
+import com.microsoft.intellij.runner.functions.component.AzureResourceComboBox;
+import com.microsoft.intellij.runner.functions.component.DeployTargetComboBox;
 import com.microsoft.intellij.runner.webapp.Constants;
 import com.microsoft.intellij.runner.webapp.webappconfig.WebAppConfiguration;
 import com.microsoft.intellij.runner.webapp.webappconfig.slimui.creation.WebAppCreationDialog;
 import com.microsoft.intellij.util.MavenRunTaskUtil;
+import com.microsoft.intellij.util.PluginUtil;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import icons.MavenIcons;
 import org.apache.commons.lang3.StringUtils;
@@ -79,11 +83,11 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
     private JTextField txtNewSlotName;
     private JComboBox cbxSlotConfigurationSource;
     private JCheckBox chkDeployToSlot;
-    private JLabel lblArtifact;
-    private JComboBox cbArtifact;
     private JCheckBox chkToRoot;
+    private JLabel lblArtifact;
+    private DeployTargetComboBox cbArtifact;
     private JLabel lblMavenProject;
-    private JComboBox cbMavenProject;
+    private DeployTargetComboBox cbMaven;
     private JPanel pnlRoot;
     private JComboBox cbxWebApp;
     private JPanel pnlSlotDetails;
@@ -101,6 +105,7 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
     private HyperlinkLabel lblNewSlot;
     private JPanel pnlExistingSlot;
     private JButton btnSlotHover;
+    private AzureResourceComboBox<ResourceEx<WebApp>> azureResourceComboBox;
     private HideableDecorator slotDecorator;
 
     // presenter
@@ -196,28 +201,8 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
             }
         });
 
-        cbArtifact.addActionListener(e -> artifactActionPerformed((Artifact) cbArtifact.getSelectedItem()));
-        cbArtifact.setRenderer(new ListCellRendererWrapper<Artifact>() {
-            @Override
-            public void customize(JList list, Artifact artifact, int index, boolean isSelected, boolean cellHasFocus) {
-                if (artifact != null) {
-                    setIcon(artifact.getArtifactType().getIcon());
-                    setText(artifact.getName());
-                }
-            }
-        });
-
-        cbMavenProject.setRenderer(new ListCellRendererWrapper<MavenProject>() {
-            @Override
-            public void customize(JList list, MavenProject mavenProject, int i, boolean b, boolean b1) {
-                if (mavenProject != null) {
-                    setIcon(MavenIcons.MavenProject);
-                    setText(mavenProject.toString());
-                }
-            }
-        });
-        cbArtifact.addItemListener((itemEvent) -> updateArtifactConfiguration());
-        cbMavenProject.addItemListener((itemEvent) -> updateArtifactConfiguration());
+//        cbArtifact.addItemListener((itemEvent) -> updateArtifactConfiguration());
+//        cbMaven.addItemListener((itemEvent) -> updateArtifactConfiguration());
 
         JLabel labelForNewSlotName = new JLabel("Slot Name");
         labelForNewSlotName.setLabelFor(txtNewSlotName);
@@ -252,7 +237,7 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
             cbxWebApp.setVisible(false);
         } else {
             lblCreateWebApp.setVisible(false);
-            cbxWebApp.setVisible(true);
+            cbxWebApp.setVisible(false);
             cbxWebApp.addItem(CREATE_NEW_WEBAPP);
             final String selectItemId = StringUtils.isNotEmpty(defaultWebAppId) ? defaultWebAppId : webAppConfiguration.getWebAppId();
             sortedWebAppLists.forEach(webAppResourceEx -> cbxWebApp.addItem(webAppResourceEx));
@@ -265,6 +250,7 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
         }
         selectWebApp();
         cbxWebApp.setEnabled(true);
+        azureResourceComboBox.setItems(sortedWebAppLists);
     }
 
     @Override
@@ -310,7 +296,7 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
     @NotNull
     @Override
     protected JComboBox<MavenProject> getCbMavenProject() {
-        return cbMavenProject;
+        return cbMaven;
     }
 
     @NotNull
@@ -447,6 +433,45 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
 
         lblNewSlot = new HyperlinkLabel("No available deployment slot, click to create a new one");
         lblNewSlot.addHyperlinkListener(e -> rbtNewSlot.doClick());
+
+        cbMaven = new DeployTargetComboBox<MavenProject>() {
+            @Override
+            public String getComboBoxItemDescription(final MavenProject selectedItem) {
+                return selectedItem.toString();
+            }
+
+            @Override
+            public Icon getComboBoxItemIcon(final MavenProject selectedItem) {
+                return MavenIcons.MavenProject;
+            }
+        };
+        cbMaven.setVisible(false);
+
+        cbArtifact = new DeployTargetComboBox<Artifact>() {
+            @Override
+            public String getComboBoxItemDescription(final Artifact selectedItem) {
+                return selectedItem.getName();
+            }
+
+            @Override
+            public Icon getComboBoxItemIcon(final Artifact selectedItem) {
+                return selectedItem.getArtifactType().getIcon();
+            }
+        };
+        cbArtifact.setVisible(false);
+
+        azureResourceComboBox = new AzureResourceComboBox<ResourceEx<WebApp>>() {
+            @Override
+            public String getComboBoxItemDescription(final ResourceEx<WebApp> selectedItem) {
+                return selectedItem.getResource().name();
+            }
+
+            @Override
+            public void onAdd() {
+                createNewWebApp();
+            }
+        };
+        azureResourceComboBox.setRenderer(new WebAppCombineBoxRender(azureResourceComboBox));
     }
 
     private void refreshWebApps(boolean force) {
