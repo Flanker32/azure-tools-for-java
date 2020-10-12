@@ -23,6 +23,7 @@
 package com.microsoft.intellij.runner.webapp.webappconfig.slimui.creation;
 
 
+import com.intellij.icons.AllIcons;
 import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -43,6 +44,7 @@ import com.microsoft.azuretools.telemetrywrapper.EventUtil;
 import com.microsoft.azuretools.utils.AzureUIRefreshCore;
 import com.microsoft.azuretools.utils.AzureUIRefreshEvent;
 import com.microsoft.azuretools.utils.WebAppUtils;
+import com.microsoft.intellij.runner.components.DeployTargetComboBox;
 import com.microsoft.intellij.runner.webapp.webappconfig.WebAppConfiguration;
 import com.microsoft.intellij.ui.components.AzureDialogWrapper;
 import com.microsoft.intellij.util.MavenRunTaskUtil;
@@ -104,6 +106,7 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
     private JLabel lblMessage;
     private JLabel lblRuntimeStack;
     private JComboBox cbRuntimeStack;
+    private DeployTargetComboBox deployTargetComboBox;
 
     private WebAppConfiguration webAppConfiguration;
     private WebApp result = null;
@@ -500,6 +503,20 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
     private boolean isJarApplication() {
         return MavenRunTaskUtil.getFileType(webAppConfiguration.getTargetName())
                                .equalsIgnoreCase(MavenConstants.TYPE_JAR);
+    }
+
+    private void createUIComponents() {
+        this.deployTargetComboBox = new DeployTargetComboBox() {
+            @Override
+            public String getComboBoxItemDescription(final Object selectedItem) {
+                return "";
+            }
+
+            @Override
+            public Icon getComboBoxItemIcon(final Object selectedItem) {
+                return AllIcons.General.ActualZoom;
+            }
+        };
     }
 
     private static <T, R> R getValueFromComboBox(JComboBox comboBox, Function<T, R> function) {
