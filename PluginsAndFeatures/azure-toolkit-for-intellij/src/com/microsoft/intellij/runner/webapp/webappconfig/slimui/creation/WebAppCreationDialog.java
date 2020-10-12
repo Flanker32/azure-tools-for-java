@@ -24,10 +24,6 @@ package com.microsoft.intellij.runner.webapp.webappconfig.slimui.creation;
 
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Comparing;
@@ -36,20 +32,14 @@ import com.microsoft.azure.management.appservice.*;
 import com.microsoft.azure.management.resources.ResourceGroup;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
-import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import com.microsoft.azuretools.core.mvp.model.webapp.JdkModel;
+import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel;
 import com.microsoft.azuretools.telemetry.AppInsightsClient;
-import com.microsoft.azuretools.telemetrywrapper.EventType;
-import com.microsoft.azuretools.telemetrywrapper.EventUtil;
-import com.microsoft.azuretools.utils.AzureUIRefreshCore;
-import com.microsoft.azuretools.utils.AzureUIRefreshEvent;
 import com.microsoft.azuretools.utils.WebAppUtils;
 import com.microsoft.intellij.runner.components.DeployTargetComboBox;
-import com.microsoft.intellij.runner.webapp.webappconfig.WebAppConfiguration;
 import com.microsoft.intellij.ui.components.AzureDialogWrapper;
 import com.microsoft.intellij.util.MavenRunTaskUtil;
 import com.microsoft.intellij.util.ValidationUtils;
-import com.microsoft.tooling.msservices.components.DefaultLoader;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -60,9 +50,6 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Function;
-
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.CREATE_WEBAPP;
-import static com.microsoft.azuretools.telemetry.TelemetryConstants.WEBAPP;
 
 public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCreationMvpView {
 
@@ -108,15 +95,21 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
     private JComboBox cbRuntimeStack;
     private DeployTargetComboBox deployTargetComboBox;
 
-    private WebAppConfiguration webAppConfiguration;
+    private WebAppSettingModel webAppSettingModel;
     private WebApp result = null;
+    private Project project;
 
-    public WebAppCreationDialog(Project project, WebAppConfiguration configuration) {
+    public WebAppSettingModel getWebAppSettingModel() {
+        return webAppSettingModel;
+    }
+
+    public WebAppCreationDialog(Project project, WebAppSettingModel webAppSettingModel) {
         super(project, true);
         setModal(true);
 
         this.setTitle(DIALOG_TITLE);
-        this.webAppConfiguration = configuration;
+        this.project = project;
+        this.webAppSettingModel = webAppSettingModel;
         this.presenter = new WebAppCreationViewPresenter<>();
         this.presenter.onAttachView(this);
 
@@ -214,7 +207,7 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
         updateConfiguration();
         cbExistAppServicePlan.removeAllItems();
         appServicePlans.stream()
-            .filter(item -> Comparing.equal(item.operatingSystem(), webAppConfiguration.getOS()))
+            .filter(item -> Comparing.equal(item.operatingSystem(), webAppSettingModel.getOS()))
             .sorted(Comparator.comparing(AppServicePlan::name))
             .forEach((plan) -> {
                 cbExistAppServicePlan.addItem(plan);
@@ -275,7 +268,7 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
     protected void init() {
         super.init();
 
-        final String projectName = webAppConfiguration.getProject().getName();
+        final String projectName = project.getName();
         final DateFormat df = new SimpleDateFormat("yyMMddHHmmss");
         final String date = df.format(new Date());
         final String defaultWebAppName = String.format("%s-%s", projectName, date);
@@ -303,43 +296,43 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
             return res;
         }
         try {
-            ValidationUtils.validateAppServiceName(webAppConfiguration.getSubscriptionId(),
-                                                   webAppConfiguration.getWebAppName());
+            ValidationUtils.validateAppServiceName(webAppSettingModel.getSubscriptionId(),
+                                                   webAppSettingModel.getWebAppName());
         } catch (IllegalArgumentException iae) {
             res.add(new ValidationInfo(iae.getMessage(), txtWebAppName));
         }
-        if (StringUtils.isEmpty(webAppConfiguration.getSubscriptionId())) {
+        if (StringUtils.isEmpty(webAppSettingModel.getSubscriptionId())) {
             res.add(new ValidationInfo("Please select subscription", cbSubscription));
         }
-        if (StringUtils.isEmpty(webAppConfiguration.getResourceGroup())) {
-            JComponent component = webAppConfiguration.isCreatingResGrp() ? txtNewResGrp : cbExistResGrp;
+        if (StringUtils.isEmpty(webAppSettingModel.getResourceGroup())) {
+            JComponent component = webAppSettingModel.isCreatingResGrp() ? txtNewResGrp : cbExistResGrp;
             res.add(new ValidationInfo("Please select resource group", component));
         }
-        if (webAppConfiguration.isCreatingAppServicePlan()) {
-            if (StringUtils.isEmpty(webAppConfiguration.getAppServicePlanName())) {
+        if (webAppSettingModel.isCreatingAppServicePlan()) {
+            if (StringUtils.isEmpty(webAppSettingModel.getAppServicePlanName())) {
                 res.add(new ValidationInfo("Please set app service plan name", txtCreateAppServicePlan));
             }
-            if (StringUtils.isEmpty(webAppConfiguration.getPricing())) {
+            if (StringUtils.isEmpty(webAppSettingModel.getPricing())) {
                 res.add(new ValidationInfo("Please select app service plan pricing tier", cbPricing));
             }
-            if (StringUtils.isEmpty(webAppConfiguration.getRegion())) {
+            if (StringUtils.isEmpty(webAppSettingModel.getRegion())) {
                 res.add(new ValidationInfo("Please select app service plan region", cbRegion));
             }
         } else {
-            if (StringUtils.isEmpty(webAppConfiguration.getAppServicePlanId())) {
+            if (StringUtils.isEmpty(webAppSettingModel.getAppServicePlanId())) {
                 res.add(new ValidationInfo("Please select app service plan", cbExistAppServicePlan));
             }
         }
-        if (webAppConfiguration.getOS() == OperatingSystem.LINUX) {
-            final RuntimeStack runtimeStack = webAppConfiguration.getLinuxRuntime();
+        if (webAppSettingModel.getOS() == OperatingSystem.LINUX) {
+            final RuntimeStack runtimeStack = webAppSettingModel.getLinuxRuntime();
             if (StringUtils.isEmpty(runtimeStack.stack()) || StringUtils.isEmpty(runtimeStack.version())) {
                 res.add(new ValidationInfo("Please select Linux web container", cbRuntimeStack));
             }
         } else {
-            if (webAppConfiguration.getJdkVersion() == null) {
+            if (webAppSettingModel.getJdkVersion() == null) {
                 res.add(new ValidationInfo("Please select Java Version", cbJdkVersion));
             }
-            if (StringUtils.isEmpty(webAppConfiguration.getWebContainer())) {
+            if (StringUtils.isEmpty(webAppSettingModel.getWebContainer())) {
                 res.add(new ValidationInfo("Please select web container", cbWebContainer));
             }
         }
@@ -348,7 +341,9 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
 
     @Override
     protected void doOKAction() {
-        createWebApp();
+//        createWebApp();
+        updateConfiguration();
+        super.doOKAction();
     }
 
     private void selectSubscription() {
@@ -396,10 +391,6 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
         }
     }
 
-    private void onOK() {
-        createWebApp();
-    }
-
     private static <T> void fillCombobox(JComboBox<T> comboBox, List<T> values, T defaultValue) {
         comboBox.removeAllItems();
         values.forEach(value -> comboBox.addItem(value));
@@ -408,85 +399,85 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
         }
     }
 
-    private void updateConfiguration() {
-        webAppConfiguration.setWebAppName(txtWebAppName.getText());
-        webAppConfiguration.setSubscriptionId(getValueFromComboBox(cbSubscription, Subscription::subscriptionId));
+    protected void updateConfiguration() {
+        webAppSettingModel.setWebAppName(txtWebAppName.getText());
+        webAppSettingModel.setSubscriptionId(getValueFromComboBox(cbSubscription, Subscription::subscriptionId));
         // resource group
         if (rdoCreateResGrp.isSelected()) {
-            webAppConfiguration.setCreatingResGrp(true);
-            webAppConfiguration.setResourceGroup(txtNewResGrp.getText());
+            webAppSettingModel.setCreatingResGrp(true);
+            webAppSettingModel.setResourceGroup(txtNewResGrp.getText());
         } else {
-            webAppConfiguration.setCreatingResGrp(false);
-            webAppConfiguration.setResourceGroup(getValueFromComboBox(cbExistResGrp, ResourceGroup::name));
+            webAppSettingModel.setCreatingResGrp(false);
+            webAppSettingModel.setResourceGroup(getValueFromComboBox(cbExistResGrp, ResourceGroup::name));
         }
         // app service plan
         if (rdoCreateAppServicePlan.isSelected()) {
-            webAppConfiguration.setCreatingAppServicePlan(true);
-            webAppConfiguration.setAppServicePlanName(txtCreateAppServicePlan.getText());
-            webAppConfiguration.setRegion(getValueFromComboBox(cbRegion, Region::name, DEFAULT_REGION.name()));
-            webAppConfiguration.setPricing(getValueFromComboBox(cbPricing, PricingTier::toString,
-                                                                DEFAULT_PRICINGTIER.toString()));
+            webAppSettingModel.setCreatingAppServicePlan(true);
+            webAppSettingModel.setAppServicePlanName(txtCreateAppServicePlan.getText());
+            webAppSettingModel.setRegion(getValueFromComboBox(cbRegion, Region::name, DEFAULT_REGION.name()));
+            webAppSettingModel.setPricing(getValueFromComboBox(cbPricing, PricingTier::toString,
+                                                               DEFAULT_PRICINGTIER.toString()));
         } else {
-            webAppConfiguration.setCreatingAppServicePlan(false);
-            webAppConfiguration.setAppServicePlanId(getValueFromComboBox(cbExistAppServicePlan, AppServicePlan::id));
+            webAppSettingModel.setCreatingAppServicePlan(false);
+            webAppSettingModel.setAppServicePlanId(getValueFromComboBox(cbExistAppServicePlan, AppServicePlan::id));
         }
         // runtime
         if (rdoLinuxOS.isSelected()) {
-            webAppConfiguration.setOS(OperatingSystem.LINUX);
+            webAppSettingModel.setOS(OperatingSystem.LINUX);
             RuntimeStack linuxRuntime = cbRuntimeStack.getSelectedItem() == null ? null :
                                         (RuntimeStack) cbRuntimeStack.getSelectedItem();
             if (linuxRuntime != null) {
-                webAppConfiguration.setStack(linuxRuntime.stack());
-                webAppConfiguration.setVersion(linuxRuntime.version());
+                webAppSettingModel.setStack(linuxRuntime.stack());
+                webAppSettingModel.setVersion(linuxRuntime.version());
             }
         } else if (rdoWindowsOS.isSelected()) {
-            webAppConfiguration.setOS(OperatingSystem.WINDOWS);
-            webAppConfiguration.setJdkVersion(getValueFromComboBox(cbJdkVersion, JdkModel::getJavaVersion));
-            webAppConfiguration.setWebContainer(getValueFromComboBox(cbWebContainer,
-                                                                     WebAppUtils.WebContainerMod::getValue));
+            webAppSettingModel.setOS(OperatingSystem.WINDOWS);
+            webAppSettingModel.setJdkVersion(getValueFromComboBox(cbJdkVersion, JdkModel::getJavaVersion));
+            webAppSettingModel.setWebContainer(getValueFromComboBox(cbWebContainer,
+                                                                    WebAppUtils.WebContainerMod::getValue));
         }
-        webAppConfiguration.setCreatingNew(true);
+        webAppSettingModel.setCreatingNew(true);
     }
 
-    private void createWebApp() {
-        updateConfiguration();
-        ProgressManager.getInstance().run(new Task.Modal(null, "Creating New WebApp...", true) {
-            @Override
-            public void run(ProgressIndicator progressIndicator) {
-                Map<String, String> properties = webAppConfiguration.getModel().getTelemetryProperties(null);
-                EventUtil.executeWithLog(WEBAPP, CREATE_WEBAPP, properties, null, (operation) -> {
-                    progressIndicator.setIndeterminate(true);
-                    EventUtil.logEvent(EventType.info, operation, properties);
-                    result = AzureWebAppMvpModel.getInstance().createWebApp(webAppConfiguration.getModel());
-                    ApplicationManager.getApplication().invokeLater(() -> {
-                        sendTelemetry(true, null);
-                        if (AzureUIRefreshCore.listeners != null) {
-                            AzureUIRefreshCore.execute(new AzureUIRefreshEvent(AzureUIRefreshEvent.EventType.REFRESH,
-                                null));
-                        }
-                    });
-                    DefaultLoader.getIdeHelper().invokeLater(() -> WebAppCreationDialog.super.doOKAction());
-                }, (ex) -> {
-                        DefaultLoader.getUIHelper().showError("Create WebApp Failed : " + ex.getMessage(),
-                                                              "Create WebApp Failed");
-                        sendTelemetry(false, ex.getMessage());
-                    });
-            }
-        });
-    }
+//    private void createWebApp() {
+//        updateConfiguration();
+//        ProgressManager.getInstance().run(new Task.Modal(null, "Creating New WebApp...", true) {
+//            @Override
+//            public void run(ProgressIndicator progressIndicator) {
+//                Map<String, String> properties = webAppConfiguration.getModel().getTelemetryProperties(null);
+//                EventUtil.executeWithLog(WEBAPP, CREATE_WEBAPP, properties, null, (operation) -> {
+//                    progressIndicator.setIndeterminate(true);
+//                    EventUtil.logEvent(EventType.info, operation, properties);
+//                    result = AzureWebAppMvpModel.getInstance().createWebApp(webAppConfiguration.getModel());
+//                    ApplicationManager.getApplication().invokeLater(() -> {
+//                        sendTelemetry(true, null);
+//                        if (AzureUIRefreshCore.listeners != null) {
+//                            AzureUIRefreshCore.execute(new AzureUIRefreshEvent(AzureUIRefreshEvent.EventType.REFRESH,
+//                                null));
+//                        }
+//                    });
+//                    DefaultLoader.getIdeHelper().invokeLater(() -> WebAppCreationDialog.super.doOKAction());
+//                }, (ex) -> {
+//                        DefaultLoader.getUIHelper().showError("Create WebApp Failed : " + ex.getMessage(),
+//                                                              "Create WebApp Failed");
+//                        sendTelemetry(false, ex.getMessage());
+//                    });
+//            }
+//        });
+//    }
 
     private void sendTelemetry(boolean success, @Nullable String errorMsg) {
         Map<String, String> telemetryMap = new HashMap<>();
-        telemetryMap.put("SubscriptionId", webAppConfiguration.getSubscriptionId());
-        telemetryMap.put("CreateNewApp", String.valueOf(webAppConfiguration.isCreatingNew()));
-        telemetryMap.put("CreateNewSP", String.valueOf(webAppConfiguration.isCreatingAppServicePlan()));
-        telemetryMap.put("CreateNewRGP", String.valueOf(webAppConfiguration.isCreatingResGrp()));
-        telemetryMap.put("FileType", MavenRunTaskUtil.getFileType(webAppConfiguration.getTargetName()));
+        telemetryMap.put("SubscriptionId", webAppSettingModel.getSubscriptionId());
+        telemetryMap.put("CreateNewApp", String.valueOf(webAppSettingModel.isCreatingNew()));
+        telemetryMap.put("CreateNewSP", String.valueOf(webAppSettingModel.isCreatingAppServicePlan()));
+        telemetryMap.put("CreateNewRGP", String.valueOf(webAppSettingModel.isCreatingResGrp()));
+        telemetryMap.put("FileType", MavenRunTaskUtil.getFileType(webAppSettingModel.getTargetName()));
         telemetryMap.put("Success", String.valueOf(success));
         if (!success) {
             telemetryMap.put("ErrorMsg", errorMsg);
         }
-        final String deploymentType = webAppConfiguration.isDeployToSlot() ? "DeploymentSlot" : "WebApp";
+        final String deploymentType = webAppSettingModel.isDeployToSlot() ? "DeploymentSlot" : "WebApp";
         AppInsightsClient.createByType(AppInsightsClient.EventType.Action
             , deploymentType, "Deploy", telemetryMap);
     }
@@ -501,7 +492,7 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
     }
 
     private boolean isJarApplication() {
-        return MavenRunTaskUtil.getFileType(webAppConfiguration.getTargetName())
+        return MavenRunTaskUtil.getFileType(webAppSettingModel.getTargetName())
                                .equalsIgnoreCase(MavenConstants.TYPE_JAR);
     }
 

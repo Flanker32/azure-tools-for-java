@@ -26,6 +26,8 @@ import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azuretools.core.mvp.model.ResourceEx;
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import com.microsoft.azuretools.core.mvp.ui.base.MvpPresenter;
+import com.microsoft.azuretools.utils.WebAppUtils;
+import com.microsoft.intellij.runner.webapp.webappconfig.WebAppComboBoxModel;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import rx.Observable;
@@ -33,6 +35,7 @@ import rx.Subscription;
 
 import java.io.InterruptedIOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.microsoft.intellij.util.RxJavaUtils.unsubscribeSubscription;
 
@@ -44,13 +47,13 @@ public class WebAppDeployViewPresenterSlim<V extends WebAppDeployMvpViewSlim> ex
     private Subscription loadSlotsSubscription;
     private Subscription loadWebAppsSubscription;
 
-    public void onLoadDeploymentSlots(final ResourceEx<WebApp> selectedWebApp) {
+    public void onLoadDeploymentSlots(final WebAppComboBoxModel selectedWebApp) {
         if (selectedWebApp == null) {
             return;
         }
         unsubscribeSubscription(loadSlotsSubscription);
         loadSlotsSubscription = Observable.fromCallable(() -> AzureWebAppMvpModel.getInstance().getDeploymentSlots(
-                selectedWebApp.getSubscriptionId(), selectedWebApp.getResource().id()))
+                selectedWebApp.getSubscriptionId(), selectedWebApp.getWebappId()))
                   .subscribeOn(getSchedulerProvider().io())
                   .subscribe(slots -> DefaultLoader.getIdeHelper().invokeLater(() -> {
                       if (isViewDetached()) {
@@ -64,7 +67,12 @@ public class WebAppDeployViewPresenterSlim<V extends WebAppDeployMvpViewSlim> ex
         unsubscribeSubscription(loadWebAppsSubscription);
         loadWebAppsSubscription = Observable.fromCallable(() -> {
                 List<ResourceEx<WebApp>> result = AzureWebAppMvpModel.getInstance().listAllWebApps(forceRefresh);
-                return result;
+                return result
+                    .stream()
+                    .filter(resource -> WebAppUtils.isJavaWebApp(resource.getResource()))
+                    .sorted((a, b) -> a.getResource().name().compareToIgnoreCase(b.getResource().name()))
+                    .map(webAppResourceEx -> new WebAppComboBoxModel(webAppResourceEx))
+                    .collect(Collectors.toList());
             }
         )
             .subscribeOn(getSchedulerProvider().io())
