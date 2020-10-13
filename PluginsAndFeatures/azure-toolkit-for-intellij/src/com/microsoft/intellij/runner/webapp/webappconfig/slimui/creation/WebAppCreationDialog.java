@@ -23,7 +23,6 @@
 package com.microsoft.intellij.runner.webapp.webappconfig.slimui.creation;
 
 
-import com.intellij.icons.AllIcons;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.ValidationInfo;
 import com.intellij.openapi.util.Comparing;
@@ -34,21 +33,20 @@ import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azuretools.core.mvp.model.webapp.JdkModel;
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel;
-import com.microsoft.azuretools.telemetry.AppInsightsClient;
 import com.microsoft.azuretools.utils.WebAppUtils;
-import com.microsoft.intellij.runner.components.DeployTargetComboBox;
 import com.microsoft.intellij.ui.components.AzureDialogWrapper;
-import com.microsoft.intellij.util.MavenRunTaskUtil;
 import com.microsoft.intellij.util.ValidationUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.jetbrains.idea.maven.model.MavenConstants;
 
 import javax.swing.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
 import java.util.function.Function;
 
 public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCreationMvpView {
@@ -93,7 +91,6 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
     private JLabel lblMessage;
     private JLabel lblRuntimeStack;
     private JComboBox cbRuntimeStack;
-    private DeployTargetComboBox deployTargetComboBox;
 
     private WebAppSettingModel webAppSettingModel;
     private WebApp result = null;
@@ -466,21 +463,21 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
 //        });
 //    }
 
-    private void sendTelemetry(boolean success, @Nullable String errorMsg) {
-        Map<String, String> telemetryMap = new HashMap<>();
-        telemetryMap.put("SubscriptionId", webAppSettingModel.getSubscriptionId());
-        telemetryMap.put("CreateNewApp", String.valueOf(webAppSettingModel.isCreatingNew()));
-        telemetryMap.put("CreateNewSP", String.valueOf(webAppSettingModel.isCreatingAppServicePlan()));
-        telemetryMap.put("CreateNewRGP", String.valueOf(webAppSettingModel.isCreatingResGrp()));
-        telemetryMap.put("FileType", MavenRunTaskUtil.getFileType(webAppSettingModel.getTargetName()));
-        telemetryMap.put("Success", String.valueOf(success));
-        if (!success) {
-            telemetryMap.put("ErrorMsg", errorMsg);
-        }
-        final String deploymentType = webAppSettingModel.isDeployToSlot() ? "DeploymentSlot" : "WebApp";
-        AppInsightsClient.createByType(AppInsightsClient.EventType.Action
-            , deploymentType, "Deploy", telemetryMap);
-    }
+//    private void sendTelemetry(boolean success, @Nullable String errorMsg) {
+//        Map<String, String> telemetryMap = new HashMap<>();
+//        telemetryMap.put("SubscriptionId", webAppSettingModel.getSubscriptionId());
+//        telemetryMap.put("CreateNewApp", String.valueOf(webAppSettingModel.isCreatingNew()));
+//        telemetryMap.put("CreateNewSP", String.valueOf(webAppSettingModel.isCreatingAppServicePlan()));
+//        telemetryMap.put("CreateNewRGP", String.valueOf(webAppSettingModel.isCreatingResGrp()));
+//        telemetryMap.put("FileType", MavenRunTaskUtil.getFileType(webAppSettingModel.getTargetName()));
+//        telemetryMap.put("Success", String.valueOf(success));
+//        if (!success) {
+//            telemetryMap.put("ErrorMsg", errorMsg);
+//        }
+//        final String deploymentType = webAppSettingModel.isDeployToSlot() ? "DeploymentSlot" : "WebApp";
+//        AppInsightsClient.createByType(AppInsightsClient.EventType.Action
+//            , deploymentType, "Deploy", telemetryMap);
+//    }
 
     private void loadWebContainers() {
         if (isJarApplication()) {
@@ -492,22 +489,9 @@ public class WebAppCreationDialog extends AzureDialogWrapper implements WebAppCr
     }
 
     private boolean isJarApplication() {
-        return MavenRunTaskUtil.getFileType(webAppSettingModel.getTargetName())
-                               .equalsIgnoreCase(MavenConstants.TYPE_JAR);
-    }
-
-    private void createUIComponents() {
-        this.deployTargetComboBox = new DeployTargetComboBox() {
-            @Override
-            public String getComboBoxItemDescription(final Object selectedItem) {
-                return "";
-            }
-
-            @Override
-            public Icon getComboBoxItemIcon(final Object selectedItem) {
-                return AllIcons.General.ActualZoom;
-            }
-        };
+//        return MavenRunTaskUtil.getFileType(webAppSettingModel.getTargetName())
+//                               .equalsIgnoreCase(MavenConstants.TYPE_JAR);
+        return true;
     }
 
     private static <T, R> R getValueFromComboBox(JComboBox comboBox, Function<T, R> function) {

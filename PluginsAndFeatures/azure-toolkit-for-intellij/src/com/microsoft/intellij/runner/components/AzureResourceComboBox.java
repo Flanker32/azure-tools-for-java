@@ -60,9 +60,11 @@ public abstract class AzureResourceComboBox<T> extends ComboBox {
                 if (listener != null) {
                     editor.getTextField().getDocument().removeDocumentListener(listener);
                 }
-                editor.getTextField().setText(getComboBoxItemDescription((T) AzureResourceComboBox.this.getSelectedItem()));
+                final Object selectedItem = AzureResourceComboBox.this.getSelectedItem();
                 AzureResourceComboBox.this.removeAllItems();
                 AzureResourceComboBox.this.setItems(itemList);
+                AzureResourceComboBox.this.setSelectedItem(selectedItem);
+                editor.getTextField().setText(getComboBoxItemDescription((T) selectedItem));
             }
         });
     }

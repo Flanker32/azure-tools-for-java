@@ -37,6 +37,7 @@ public class WebAppComboBoxModel {
                        webAppSettingModel.getLinuxRuntime().toString() : webAppSettingModel.getWebContainer();
         this.subscriptionId = webAppSettingModel.getSubscriptionId();
         this.isNewCreateResource = true;
+        this.webAppSettingModel = webAppSettingModel;
     }
 
     public boolean isNewCreateResource() {

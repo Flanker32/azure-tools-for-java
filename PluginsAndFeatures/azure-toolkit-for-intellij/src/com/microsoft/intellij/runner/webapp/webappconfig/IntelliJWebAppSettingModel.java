@@ -58,4 +58,22 @@ public class IntelliJWebAppSettingModel extends WebAppSettingModel {
     public void setSlotPanelVisible(boolean slotPanelVisible) {
         this.slotPanelVisible = slotPanelVisible;
     }
+
+    public void setModel(WebAppSettingModel webAppSettingModel) {
+        setWebAppName(webAppSettingModel.getWebAppName());
+        setSubscriptionId(webAppSettingModel.getSubscriptionId());
+        setCreatingResGrp(webAppSettingModel.isCreatingResGrp());
+        setResourceGroup(webAppSettingModel.getResourceGroup());
+        setCreatingAppServicePlan(webAppSettingModel.isCreatingAppServicePlan());
+        setAppServicePlanName(webAppSettingModel.getAppServicePlanName());
+        setRegion(webAppSettingModel.getRegion());
+        setPricing(webAppSettingModel.getPricing());
+        setAppServicePlanId(webAppSettingModel.getAppServicePlanId());
+        setOS(webAppSettingModel.getOS());
+        setStack(webAppSettingModel.getStack());
+        setVersion(webAppSettingModel.getVersion());
+        setJdkVersion(webAppSettingModel.getJdkVersion());
+        setWebContainer(webAppSettingModel.getWebContainer());
+        setCreatingNew(true);
+    }
 }

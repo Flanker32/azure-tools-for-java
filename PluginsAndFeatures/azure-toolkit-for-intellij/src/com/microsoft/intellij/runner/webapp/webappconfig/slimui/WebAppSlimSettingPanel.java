@@ -245,11 +245,12 @@ public class WebAppSlimSettingPanel extends AzureSettingPanel<WebAppConfiguratio
         final WebAppComboBoxModel selectedWebApp = (WebAppComboBoxModel) azureResourceComboBox.getSelectedItem();
         configuration.setWebAppId(selectedWebApp == null ? null : selectedWebApp.getWebappId());
         configuration.setSubscriptionId(selectedWebApp == null ? null : selectedWebApp.getSubscriptionId());
-        configuration.getModel()
+        if (selectedWebApp != null && selectedWebApp.isNewCreateResource()) {
+            configuration.setModel(selectedWebApp.getWebAppSettingModel());
+        }
         final String targetName = getTargetName();
         configuration.setTargetPath(getTargetPath());
         configuration.setTargetName(targetName);
-        configuration.setCreatingNew(false);
         configuration.setDeployToSlot(chkDeployToSlot.isSelected());
         configuration.setSlotPanelVisible(slotDecorator.isExpanded());
         chkToRoot.setVisible(isAbleToDeployToRoot(targetName));

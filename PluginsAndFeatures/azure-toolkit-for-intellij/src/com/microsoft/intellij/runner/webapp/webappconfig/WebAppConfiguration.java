@@ -37,6 +37,7 @@ import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.RuntimeStack;
 import com.microsoft.azuretools.azurecommons.util.Utils;
+import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel;
 import com.microsoft.intellij.runner.AzureRunConfigurationBase;
 import com.microsoft.intellij.runner.webapp.Constants;
 import org.apache.commons.lang.StringUtils;
@@ -367,5 +368,9 @@ public class WebAppConfiguration extends AzureRunConfigurationBase<IntelliJWebAp
 
     public void setSlotPanelVisible(boolean slotPanelVisible) {
         webAppSettingModel.setSlotPanelVisible(slotPanelVisible);
+    }
+
+    public void setModel(WebAppSettingModel webAppSettingModel) {
+        getModel().setModel(webAppSettingModel);
     }
 }
