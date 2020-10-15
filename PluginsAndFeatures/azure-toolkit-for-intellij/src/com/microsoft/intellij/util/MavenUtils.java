@@ -45,24 +45,29 @@ public class MavenUtils {
         return MavenProjectsManager.getInstance(project).getRootProjects();
     }
 
-    public static String getTargetFile(@NotNull Project ideaProject, @NotNull MavenProject mavenProject)
-            throws AzureExecutionException, DocumentException, MavenProcessCanceledException {
-        String xml = evaluateEffectivePom(ideaProject, mavenProject);
-        if (StringUtils.isEmpty(xml)) {
-            throw new AzureExecutionException("Failed to evaluate effective pom for project: " + ideaProject.getName());
-        }
-        SpringCloudDependencyManager manager = new SpringCloudDependencyManager(xml);
-        String finalName = manager.getPluginConfiguration("org.springframework.boot", "spring-boot-maven"
-                + "-plugin", "finalName");
-        if (StringUtils.isEmpty(finalName)) {
-            finalName = mavenProject.getFinalName();
-        }
-
-        if (StringUtils.isEmpty(finalName)) {
-            throw new AzureExecutionException("Failed to evaluate <finalName> for project: " + ideaProject.getName());
-        }
-        return Paths.get(mavenProject.getBuildDirectory(), finalName + "." + mavenProject.getPackaging()).toString();
+    public static String getTargetFile(@NotNull MavenProject mavenProject) {
+        return Paths.get(mavenProject.getBuildDirectory(),
+                         mavenProject.getFinalName() + "." + mavenProject.getPackaging()).toString();
     }
+
+//    public static String getTargetFile(@NotNull Project ideaProject, @NotNull MavenProject mavenProject)
+//            throws AzureExecutionException, DocumentException, MavenProcessCanceledException {
+//        String xml = evaluateEffectivePom(ideaProject, mavenProject);
+//        if (StringUtils.isEmpty(xml)) {
+//            throw new AzureExecutionException("Failed to evaluate effective pom for project: " + ideaProject.getName());
+//        }
+//        SpringCloudDependencyManager manager = new SpringCloudDependencyManager(xml);
+//        String finalName = manager.getPluginConfiguration("org.springframework.boot", "spring-boot-maven"
+//                + "-plugin", "finalName");
+//        if (StringUtils.isEmpty(finalName)) {
+//            finalName = mavenProject.getFinalName();
+//        }
+//
+//        if (StringUtils.isEmpty(finalName)) {
+//            throw new AzureExecutionException("Failed to evaluate <finalName> for project: " + ideaProject.getName());
+//        }
+//        return Paths.get(mavenProject.getBuildDirectory(), finalName + "." + mavenProject.getPackaging()).toString();
+//    }
 
     public static String evaluateEffectivePom(@NotNull Project ideaProject,
                                               @NotNull MavenProject mavenProject) throws MavenProcessCanceledException {
@@ -74,5 +79,26 @@ public class MavenUtils {
                                                                      MavenEmbeddersManager.FOR_DEPENDENCIES_RESOLVE);
         embedder.clearCachesFor(mavenProject.getMavenId());
         return embedder.evaluateEffectivePom(mavenProject.getFile(), profiles.getEnabledProfiles(), profiles.getDisabledProfiles());
+    }
+
+    private static final String SPRING_BOOT_MAVEN_PLUGIN = "spring-boot-maven"
+            + "-plugin";
+    private static final String MAVEN_PROJECT_NOT_FOUND = "Cannot find maven project at folder: %s";
+
+    public static String getSpringBootFinalJarFilePath(@NotNull Project ideaProject,
+                                                       @NotNull MavenProject mavenProject) {
+        String finalName = null;
+        try {
+            String xml = evaluateEffectivePom(ideaProject, mavenProject);
+            if (StringUtils.isNotEmpty(xml) && xml.contains(SPRING_BOOT_MAVEN_PLUGIN)) {
+                SpringCloudDependencyManager manager = new SpringCloudDependencyManager(xml);
+                finalName = manager.getPluginConfiguration("org.springframework.boot",
+                                                           SPRING_BOOT_MAVEN_PLUGIN, "finalName");
+
+            }
+        } catch (MavenProcessCanceledException | DocumentException ex) {
+            // ignore
+        }
+        return finalName;
     }
 }
