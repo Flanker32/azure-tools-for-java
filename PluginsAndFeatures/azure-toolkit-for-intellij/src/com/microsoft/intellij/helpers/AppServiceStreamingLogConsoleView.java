@@ -21,13 +21,26 @@
  */
 package com.microsoft.intellij.helpers;
 
+import com.intellij.execution.filters.OpenFileHyperlinkInfo;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.JavaPsiFacade;
+import com.intellij.psi.PsiClass;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.intellij.psi.util.PsiUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import rx.Observable;
 import rx.Subscription;
 import rx.schedulers.Schedulers;
+
+import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.SYSTEM_OUTPUT;
@@ -41,11 +54,13 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
     private boolean isDisposed;
     private String resourceId;
     private Subscription subscription;
+    private Project project;
 
     public AppServiceStreamingLogConsoleView(@NotNull Project project, String resourceId) {
         super(project, true);
         this.isDisposed = false;
         this.resourceId = resourceId;
+        this.project = project;
     }
 
     public void startStreamingLog(Observable<String> logStreaming) {
@@ -73,7 +88,33 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
     }
 
     private void printlnToConsole(String message, ConsoleViewContentType consoleViewContentType) {
-        this.print(message + SEPARATOR, consoleViewContentType);
+        Matcher matcher = STACKTRACE_PATTERN.matcher(message);
+        if (matcher.find()) {
+            String methodField = matcher.group(2);
+            String locationField = matcher.group(matcher.groupCount());
+            String fullyQualifiedName = methodField.substring(0, methodField.lastIndexOf("."));
+            String packageName = fullyQualifiedName.lastIndexOf(".") > -1 ? fullyQualifiedName.substring(0, fullyQualifiedName.lastIndexOf(".")) : "";
+            String[] locations = locationField.split(":");
+            String sourceName = locations[0];
+            int lineNumber = Integer.parseInt(locations[1]);
+//            String sourcePath = StringUtils.isBlank(packageName) ? sourceName
+//                                                                 : packageName.replace('.', File.separatorChar) + File.separatorChar + sourceName;
+            this.printHyperlink(message + SEPARATOR, new OpenFileHyperlinkInfo(project, getVirtualFile(fullyQualifiedName), lineNumber));
+        } else {
+            this.print(message + SEPARATOR, consoleViewContentType);
+        }
+    }
+
+    private VirtualFile getVirtualFile(String fullyQualifiedName) {
+        final Module[] modules = ModuleManager.getInstance(project).getModules();
+        for (Module module : modules) {
+            final GlobalSearchScope scope = GlobalSearchScope.moduleWithLibrariesScope(module);
+            final PsiClass ecClass = JavaPsiFacade.getInstance(project).findClass(fullyQualifiedName, scope);
+            if (ecClass != null) {
+                return PsiUtil.getVirtualFile(ecClass);
+            }
+        }
+        return null;
     }
 
     @Override
@@ -82,4 +123,7 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
         this.isDisposed = true;
         closeStreamingLog();
     }
+
+    private static final Pattern
+            STACKTRACE_PATTERN = Pattern.compile("\\s+at\\s+([\\w$\\.]+\\/)?(([\\w$]+\\.)+[<\\w$>]+)\\(([\\w-$]+\\.java:\\d+)\\)");
 }
