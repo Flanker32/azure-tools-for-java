@@ -90,16 +90,17 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
     private void printlnToConsole(String message, ConsoleViewContentType consoleViewContentType) {
         Matcher matcher = STACKTRACE_PATTERN.matcher(message);
         if (matcher.find()) {
+            String prefix = matcher.group(1);
+            String suffix = matcher.group(7);
             String methodField = matcher.group(2);
-            String locationField = matcher.group(matcher.groupCount());
+            String locationField = matcher.group(6);
             String fullyQualifiedName = methodField.substring(0, methodField.lastIndexOf("."));
             String packageName = fullyQualifiedName.lastIndexOf(".") > -1 ? fullyQualifiedName.substring(0, fullyQualifiedName.lastIndexOf(".")) : "";
             String[] locations = locationField.split(":");
-            String sourceName = locations[0];
             int lineNumber = Integer.parseInt(locations[1]);
-//            String sourcePath = StringUtils.isBlank(packageName) ? sourceName
-//                                                                 : packageName.replace('.', File.separatorChar) + File.separatorChar + sourceName;
-            this.printHyperlink(message + SEPARATOR, new OpenFileHyperlinkInfo(project, getVirtualFile(fullyQualifiedName), lineNumber));
+            this.print(prefix, consoleViewContentType);
+            this.printHyperlink(locationField, new OpenFileHyperlinkInfo(project, getVirtualFile(fullyQualifiedName), lineNumber));
+            this.print(prefix + SEPARATOR, consoleViewContentType);
         } else {
             this.print(message + SEPARATOR, consoleViewContentType);
         }
@@ -125,5 +126,5 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
     }
 
     private static final Pattern
-            STACKTRACE_PATTERN = Pattern.compile("\\s+at\\s+([\\w$\\.]+\\/)?(([\\w$]+\\.)+[<\\w$>]+)\\(([\\w-$]+\\.java:\\d+)\\)");
+            STACKTRACE_PATTERN = Pattern.compile("((\\s+at\\s+([\\w$\\.]+\\/)?(([\\w$]+\\.)+[<\\w$>]+))\\()([\\w-$]+\\.java:\\d+)(\\).*)");
 }
