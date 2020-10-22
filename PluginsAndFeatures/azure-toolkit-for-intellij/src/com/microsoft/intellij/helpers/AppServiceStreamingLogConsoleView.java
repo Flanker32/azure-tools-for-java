@@ -32,6 +32,7 @@ import com.intellij.psi.JavaPsiFacade;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiUtil;
+import com.microsoft.tooling.msservices.components.DefaultLoader;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import rx.Observable;
@@ -46,6 +47,8 @@ import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.SYSTEM_OUTPUT;
 
 public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
+    private static final Pattern
+            STACKTRACE_PATTERN = Pattern.compile("(\\s+at\\s+([\\w$\\.]+\\/)?(([\\w$]+\\.)+[<\\w$>]+)\\()([\\w-$]+\\.java:\\d+)(\\).*)");
 
     private static final String SEPARATOR = System.getProperty("line.separator");
     private static final String START_LOG_STREAMING = "Connecting to log stream...";
@@ -55,6 +58,7 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
     private String resourceId;
     private Subscription subscription;
     private Project project;
+
 
     public AppServiceStreamingLogConsoleView(@NotNull Project project, String resourceId) {
         super(project, true);
@@ -91,16 +95,20 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
         Matcher matcher = STACKTRACE_PATTERN.matcher(message);
         if (matcher.find()) {
             String prefix = matcher.group(1);
-            String suffix = matcher.group(7);
-            String methodField = matcher.group(2);
-            String locationField = matcher.group(6);
-            String fullyQualifiedName = methodField.substring(0, methodField.lastIndexOf("."));
+            String suffix = matcher.group(6);
+            String methodField = matcher.group(3);
+            String locationField = matcher.group(5);
+            String fullyQualifiedName = StringUtils.contains(methodField, "$") ?
+                                        methodField.substring(0, methodField.lastIndexOf("$")) :
+                                        methodField.substring(0, methodField.lastIndexOf("."));
             String packageName = fullyQualifiedName.lastIndexOf(".") > -1 ? fullyQualifiedName.substring(0, fullyQualifiedName.lastIndexOf(".")) : "";
             String[] locations = locationField.split(":");
             int lineNumber = Integer.parseInt(locations[1]);
-            this.print(prefix, consoleViewContentType);
-            this.printHyperlink(locationField, new OpenFileHyperlinkInfo(project, getVirtualFile(fullyQualifiedName), lineNumber));
-            this.print(prefix + SEPARATOR, consoleViewContentType);
+            DefaultLoader.getIdeHelper().invokeAndWait(() -> {
+                this.print(prefix, consoleViewContentType);
+                this.printHyperlink(locationField, new OpenFileHyperlinkInfo(project, getVirtualFile(fullyQualifiedName), lineNumber -1));
+                this.print(suffix + SEPARATOR, consoleViewContentType);
+            });
         } else {
             this.print(message + SEPARATOR, consoleViewContentType);
         }
@@ -124,7 +132,4 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
         this.isDisposed = true;
         closeStreamingLog();
     }
-
-    private static final Pattern
-            STACKTRACE_PATTERN = Pattern.compile("((\\s+at\\s+([\\w$\\.]+\\/)?(([\\w$]+\\.)+[<\\w$>]+))\\()([\\w-$]+\\.java:\\d+)(\\).*)");
 }
