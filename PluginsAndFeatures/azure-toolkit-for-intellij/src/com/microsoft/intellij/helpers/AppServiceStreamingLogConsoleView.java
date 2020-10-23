@@ -21,9 +21,8 @@
  */
 package com.microsoft.intellij.helpers;
 
-import com.intellij.execution.impl.ConsoleViewImpl;
-import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
+import com.microsoft.azure.toolkit.lib.common.streaminglog.BasicStreamingLogView;
 import org.jetbrains.annotations.NotNull;
 import rx.Observable;
 import rx.Subscription;
@@ -32,20 +31,20 @@ import rx.schedulers.Schedulers;
 import static com.intellij.execution.ui.ConsoleViewContentType.NORMAL_OUTPUT;
 import static com.intellij.execution.ui.ConsoleViewContentType.SYSTEM_OUTPUT;
 
-public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
-
-    private static final String SEPARATOR = System.getProperty("line.separator");
+public class AppServiceStreamingLogConsoleView extends BasicStreamingLogView {
     private static final String START_LOG_STREAMING = "Connecting to log stream...";
     private static final String STOP_LOG_STREAMING = "Disconnected from log-streaming service.";
 
     private boolean isDisposed;
     private String resourceId;
     private Subscription subscription;
+    private Project project;
 
     public AppServiceStreamingLogConsoleView(@NotNull Project project, String resourceId) {
         super(project, true);
         this.isDisposed = false;
         this.resourceId = resourceId;
+        this.project = project;
     }
 
     public void startStreamingLog(Observable<String> logStreaming) {
@@ -70,10 +69,6 @@ public class AppServiceStreamingLogConsoleView extends ConsoleViewImpl {
 
     public boolean isDisposed() {
         return this.isDisposed;
-    }
-
-    private void printlnToConsole(String message, ConsoleViewContentType consoleViewContentType) {
-        this.print(message + SEPARATOR, consoleViewContentType);
     }
 
     @Override

@@ -22,10 +22,10 @@
 
 package com.microsoft.intellij.helpers.springcloud;
 
-import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.openapi.project.Project;
 import com.microsoft.applicationinsights.internal.util.ThreadPoolUtils;
+import com.microsoft.azure.toolkit.lib.common.streaminglog.BasicStreamingLogView;
 import com.microsoft.intellij.helpers.ConsoleViewStatus;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import org.jetbrains.annotations.NotNull;
@@ -39,7 +39,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class SpringCloudStreamingLogConsoleView extends ConsoleViewImpl {
+public class SpringCloudStreamingLogConsoleView extends BasicStreamingLogView {
 
     private ConsoleViewStatus status;
     private ExecutorService executorService;
@@ -85,7 +85,7 @@ public class SpringCloudStreamingLogConsoleView extends ConsoleViewImpl {
             try (final Scanner scanner = new Scanner(new InputStreamReader(logInputStream))) {
                 while (getStatus() == ConsoleViewStatus.ACTIVE && scanner.hasNext()) {
                     final String log = scanner.nextLine();
-                    SpringCloudStreamingLogConsoleView.this.print(log + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
+                    SpringCloudStreamingLogConsoleView.this.printlnToConsole(log, ConsoleViewContentType.NORMAL_OUTPUT);
                     Thread.sleep(50);
                 }
             } catch (InterruptedException e) {

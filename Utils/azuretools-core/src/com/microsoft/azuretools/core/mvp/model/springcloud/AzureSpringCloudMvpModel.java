@@ -240,7 +240,7 @@ public class AzureSpringCloudMvpModel {
         final String basicAuth = "Basic " + new String(Base64.getEncoder().encode(userpass.getBytes()));
         connection.setRequestProperty("Authorization", basicAuth);
 
-        connection.setReadTimeout(50000);
+        connection.setReadTimeout(Integer.MAX_VALUE);
         connection.setConnectTimeout(3000);
         connection.setRequestMethod("GET");
         connection.connect();
