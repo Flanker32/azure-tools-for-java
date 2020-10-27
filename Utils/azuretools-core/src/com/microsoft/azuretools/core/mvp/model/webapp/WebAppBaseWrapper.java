@@ -222,7 +222,7 @@ public abstract class WebAppBaseWrapper implements WebAppBase {
 
     @Override
     public JavaVersion javaVersion() {
-        return getWebAppBase().javaVersion();
+        return JavaVersion.fromString(siteInner.siteConfig().javaVersion());
     }
 
     @Override
@@ -337,7 +337,7 @@ public abstract class WebAppBaseWrapper implements WebAppBase {
 
     @Override
     public String linuxFxVersion() {
-        return getWebAppBase().linuxFxVersion();
+        return siteInner.siteConfig().linuxFxVersion();
     }
 
     @Override

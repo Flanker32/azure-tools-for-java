@@ -24,8 +24,10 @@ package com.microsoft.azure.toolkit.intellij.function;
 import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.toolkit.intellij.appservice.AppServiceComboBoxModel;
+import com.microsoft.azure.toolkit.lib.function.FunctionAppConfig;
 import com.microsoft.azuretools.core.mvp.model.AzureMvpModel;
 import com.microsoft.azuretools.core.mvp.model.ResourceEx;
+import com.microsoft.intellij.runner.functions.IntelliJFunctionRuntimeConfiguration;
 import com.microsoft.intellij.runner.functions.deploy.FunctionDeployModel;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +36,7 @@ import org.apache.commons.lang3.StringUtils;
 public class FunctionAppComboBoxModel extends AppServiceComboBoxModel<FunctionApp> {
     private String runtime;
     private FunctionDeployModel functionDeployModel;
+    private FunctionAppConfig functionAppConfig;
 
     public FunctionAppComboBoxModel(final ResourceEx<FunctionApp> resourceEx) {
         super(resourceEx);
@@ -52,6 +55,17 @@ public class FunctionAppComboBoxModel extends AppServiceComboBoxModel<FunctionAp
                 functionDeployModel.getAppName();
         this.resourceGroup = functionDeployModel.getResourceGroup();
         this.subscriptionId = functionDeployModel.getSubscription();
+        final IntelliJFunctionRuntimeConfiguration runtime = functionDeployModel.getRuntime();
+        this.runtime = String.format("%s-Java ", StringUtils.capitalize(runtime.getOs()), runtime.getJavaVersion());
         this.functionDeployModel = functionDeployModel;
+    }
+
+    public FunctionAppComboBoxModel(FunctionAppConfig functionAppConfig) {
+        this.isNewCreateResource = true;
+        this.appName = functionAppConfig.getName();
+        this.resourceGroup = functionAppConfig.getResourceGroup().name();
+        this.subscriptionId = functionAppConfig.getSubscription().subscriptionId();
+        this.runtime = functionAppConfig.getPlatform().toString();
+        this.functionAppConfig = functionAppConfig;
     }
 }

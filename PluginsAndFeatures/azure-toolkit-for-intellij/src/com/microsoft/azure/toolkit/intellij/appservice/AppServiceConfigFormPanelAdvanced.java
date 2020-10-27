@@ -110,7 +110,7 @@ public class AppServiceConfigFormPanelAdvanced<T extends AppServiceConfig> exten
     }
 
     @Override
-    public void setData(final AppServiceConfig config) {
+    public void setData(final T config) {
         this.selectorSubscription.setValue(config.getSubscription());
         this.selectorGroup.setValue(config.getResourceGroup());
         this.textName.setValue(config.getName());
@@ -147,6 +147,14 @@ public class AppServiceConfigFormPanelAdvanced<T extends AppServiceConfig> exten
 
     public SubscriptionComboBox getSelectorSubscription() {
         return selectorSubscription;
+    }
+
+    public PlatformComboBox getSelectorPlatform() {
+        return selectorPlatform;
+    }
+
+    public ServicePlanComboBox getSelectorServicePlan() {
+        return selectorServicePlan;
     }
 
     private void init() {

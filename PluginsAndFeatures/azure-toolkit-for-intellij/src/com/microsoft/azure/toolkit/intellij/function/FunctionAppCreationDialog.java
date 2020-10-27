@@ -26,15 +26,18 @@ import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.appservice.AppConfigDialog;
 import com.microsoft.azure.toolkit.intellij.appservice.AppServiceConfigFormPanelBasic;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
+import com.microsoft.azure.toolkit.lib.appservice.Platform;
 import com.microsoft.azure.toolkit.lib.function.FunctionAppConfig;
+import com.microsoft.azure.toolkit.lib.model.ApplicationInsightsModel;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 
 import javax.swing.*;
+import java.util.Arrays;
 
 public class FunctionAppCreationDialog extends AppConfigDialog<FunctionAppConfig> {
 
     private JPanel contentPane;
-    private AppServiceConfigFormPanelBasic basicPanel;
+    private AppServiceConfigFormPanelBasic<FunctionAppConfig> basicPanel;
     private FunctionAppConfigFormPanelAdvance advancePanel;
 
     public FunctionAppCreationDialog(final Project project) {
@@ -66,7 +69,16 @@ public class FunctionAppCreationDialog extends AppConfigDialog<FunctionAppConfig
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        basicPanel = new AppServiceConfigFormPanelBasic(project, () -> FunctionAppConfig.builder().build());
+        basicPanel = new AppServiceConfigFormPanelBasic<FunctionAppConfig>(project, () -> FunctionAppConfig.builder().build()){
+            @Override
+            public FunctionAppConfig getData() {
+                // Create AI instance with same name by default
+                final FunctionAppConfig config = super.getData();
+                config.setApplicationInsightsModel(new ApplicationInsightsModel(config.getName()));
+                return config;
+            }
+        };
+        basicPanel.getSelectorPlatform().setPlatformList(Arrays.asList(Platform.AzureFunction.values()));
         advancePanel = new FunctionAppConfigFormPanelAdvance(project);
     }
 }

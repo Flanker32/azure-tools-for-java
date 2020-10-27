@@ -24,26 +24,33 @@ package com.microsoft.azure.toolkit.intellij.function;
 
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.toolkit.intellij.appservice.AppServiceConfigFormPanelAdvanced;
+import com.microsoft.azure.toolkit.intellij.appservice.insights.ApplicationInsightsComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
+import com.microsoft.azure.toolkit.lib.appservice.Platform;
 import com.microsoft.azure.toolkit.lib.common.form.AzureFormInput;
 import com.microsoft.azure.toolkit.lib.function.FunctionAppConfig;
+import com.microsoft.azuretools.core.mvp.model.function.AzureFunctionMvpModel;
 import com.microsoft.intellij.runner.functions.component.ApplicationInsightsPanel;
+import org.apache.commons.collections.ListUtils;
 
 import javax.swing.*;
+import java.util.Arrays;
 import java.util.List;
 
 public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFormPanel<FunctionAppConfig> {
     private JTabbedPane tabPane;
     private JPanel pnlRoot;
     private Project project;
-    private AppServiceConfigFormPanelAdvanced appServiceConfigPanelAdvanced;
+    private AppServiceConfigFormPanelAdvanced<FunctionAppConfig> appServiceConfigPanelAdvanced;
     private ApplicationInsightsComboBox applicationInsightsComboBox;
     private JRadioButton noRadioButton;
     private JRadioButton yesRadioButton;
+    private JLabel lblApplicationInsights;
     private ApplicationInsightsPanel applicationInsightsPanel;
 
     public FunctionAppConfigFormPanelAdvance(final Project project) {
         this.project = project;
+        this.init();
     }
 
     @Override
@@ -53,17 +60,35 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
 
     @Override
     public FunctionAppConfig getData() {
-        return (FunctionAppConfig) appServiceConfigPanelAdvanced.getData();
+        final FunctionAppConfig data = appServiceConfigPanelAdvanced.getData();
+        data.setApplicationInsightsModel(yesRadioButton.isSelected() ? applicationInsightsComboBox.getValue() : null);
+        return data;
     }
 
     @Override
     public void setData(final FunctionAppConfig data) {
         appServiceConfigPanelAdvanced.setData(data);
+        applicationInsightsComboBox.setValue(data.getApplicationInsightsModel());
     }
 
     @Override
     public List<AzureFormInput<?>> getInputs() {
-        return appServiceConfigPanelAdvanced.getInputs();
+        return ListUtils.union(appServiceConfigPanelAdvanced.getInputs(), Arrays.asList(applicationInsightsComboBox));
+    }
+
+    private void init() {
+        final ButtonGroup buttonGroup = new ButtonGroup();
+        buttonGroup.add(noRadioButton);
+        buttonGroup.add(yesRadioButton);
+
+        yesRadioButton.setSelected(true);
+        yesRadioButton.addItemListener(event -> toggleApplicationInsights(yesRadioButton.isSelected()));
+        noRadioButton.addItemListener(event -> toggleApplicationInsights(yesRadioButton.isSelected()));
+    }
+
+    private void toggleApplicationInsights(boolean enable){
+        lblApplicationInsights.setVisible(enable);
+        applicationInsightsComboBox.setVisible(enable);
     }
 
     private void createUIComponents() {
@@ -71,6 +96,13 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
         appServiceConfigPanelAdvanced = new AppServiceConfigFormPanelAdvanced(project, () -> FunctionAppConfig.builder().build());
         // Function does not support file deployment
         appServiceConfigPanelAdvanced.setDeploymentVisible(false);
+        appServiceConfigPanelAdvanced.getSelectorPlatform().setPlatformList(Arrays.asList(Platform.AzureFunction.values()));
+        try {
+            appServiceConfigPanelAdvanced.getSelectorServicePlan().setPricingTierList(AzureFunctionMvpModel.getInstance()
+                                                                                                           .listFunctionPricingTier());
+        } catch (IllegalAccessException e) {
+            //
+        }
 
         applicationInsightsPanel = new ApplicationInsightsPanel();
         applicationInsightsComboBox = new ApplicationInsightsComboBox();

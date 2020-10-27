@@ -22,15 +22,33 @@
 
 package com.microsoft.intellij.runner.functions.deploy;
 
-import com.intellij.openapi.project.Project;
+import com.microsoft.azure.management.appservice.OperatingSystem;
+import com.microsoft.azure.toolkit.lib.function.FunctionAppConfig;
 import com.microsoft.intellij.runner.functions.IntelliJFunctionContext;
+import com.microsoft.intellij.runner.functions.IntelliJFunctionRuntimeConfiguration;
 
 public class FunctionDeployModel extends IntelliJFunctionContext {
 
+    private boolean isNewResource;
     private String functionId;
 
-    public FunctionDeployModel(Project project) {
-        super(project);
+    public FunctionDeployModel() {
+
+    }
+
+    public FunctionDeployModel(final FunctionAppConfig functionAppConfig) {
+        super();
+        setSubscription(functionAppConfig.getSubscription().subscriptionId());
+        setAppName(functionAppConfig.getName());
+        setAppServicePlanName(functionAppConfig.getServicePlan().name());
+        setAppServicePlanResourceGroup(functionAppConfig.getServicePlan().resourceGroupName());
+        setPricingTier(functionAppConfig.getServicePlan().pricingTier().toSkuDescription().size());
+        setRegion(functionAppConfig.getServicePlan().regionName());
+        final IntelliJFunctionRuntimeConfiguration runtimeConfiguration = new IntelliJFunctionRuntimeConfiguration();
+        runtimeConfiguration.setOs(
+                functionAppConfig.getPlatform().getOs() == OperatingSystem.WINDOWS ? "windows" : "linux");
+        runtimeConfiguration.setJavaVersion(functionAppConfig.getPlatform().getStackVersionOrJavaVersion());
+        setRuntime(runtimeConfiguration);
     }
 
     public String getFunctionId() {
@@ -39,5 +57,13 @@ public class FunctionDeployModel extends IntelliJFunctionContext {
 
     public void setFunctionId(String functionId) {
         this.functionId = functionId;
+    }
+
+    public boolean isNewResource() {
+        return isNewResource;
+    }
+
+    public void setNewResource(final boolean newResource) {
+        isNewResource = newResource;
     }
 }

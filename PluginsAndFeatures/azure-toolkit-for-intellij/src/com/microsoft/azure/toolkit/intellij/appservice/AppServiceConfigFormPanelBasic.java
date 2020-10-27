@@ -148,7 +148,7 @@ public class AppServiceConfigFormPanelBasic<T extends AppServiceConfig> extends 
     }
 
     @Override
-    public void setData(final AppServiceConfig config) {
+    public void setData(final T config) {
         this.textName.setValue(config.getName());
         this.selectorPlatform.setValue(config.getPlatform());
     }
@@ -167,6 +167,10 @@ public class AppServiceConfigFormPanelBasic<T extends AppServiceConfig> extends 
     public void setVisible(final boolean visible) {
         this.contentPanel.setVisible(visible);
         super.setVisible(visible);
+    }
+
+    public PlatformComboBox getSelectorPlatform() {
+        return selectorPlatform;
     }
 
     private void createUIComponents() {

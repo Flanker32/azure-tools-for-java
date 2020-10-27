@@ -36,6 +36,11 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.OperatingSystem;
+import com.microsoft.azure.management.appservice.WebApp;
+import com.microsoft.azure.toolkit.intellij.function.FunctionAppComboBoxModel;
+import com.microsoft.azure.toolkit.lib.function.FunctionAppConfig;
+import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel;
 import com.microsoft.intellij.runner.AzureRunConfigurationBase;
 import com.microsoft.intellij.runner.functions.IntelliJFunctionRuntimeConfiguration;
 import com.microsoft.intellij.runner.functions.core.FunctionUtils;
@@ -51,12 +56,12 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
     public static final String NEED_SPECIFY_MODULE = "Please specify module";
     public static final String NEED_SPECIFY_TARGET_FUNCTION = "Please specify target function";
     public static final String NEED_SPECIFY_VALID_STAGING_DIRECTORY_PATH = "Please specify valid staging directory path";
-    private final FunctionDeployModel functionDeployModel;
+    private FunctionDeployModel functionDeployModel;
     private Module module;
 
     public FunctionDeployConfiguration(@NotNull Project project, @NotNull ConfigurationFactory factory, String name) {
         super(project, factory, name);
-        functionDeployModel = new FunctionDeployModel(project);
+        functionDeployModel = new FunctionDeployModel();
     }
 
     @NotNull
@@ -95,6 +100,10 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
 
     public void setResourceGroup(String resourceGroup) {
         functionDeployModel.setResourceGroup(resourceGroup);
+    }
+
+    public String getAppName() {
+        return functionDeployModel.getAppName();
     }
 
     public void setAppName(String appName) {
@@ -179,6 +188,64 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
         if (module != null) {
             this.module = module;
             functionDeployModel.setModuleName(module.getName());
+        }
+    }
+
+    public boolean isNewResource() {
+        return functionDeployModel.isNewResource();
+    }
+
+    public void setNewResource(final boolean newResource) {
+        functionDeployModel.setNewResource(newResource);
+    }
+
+    public void setAppServicePlanName(final String name) {
+        functionDeployModel.setAppServicePlanName(name);
+    }
+
+    public void setAppServicePlanResourceGroup(final String resourceGroupName) {
+        functionDeployModel.setAppServicePlanResourceGroup(resourceGroupName);
+    }
+
+    public void setFunctionDeployModel(final FunctionDeployModel functionDeployModel) {
+        this.functionDeployModel = functionDeployModel;
+    }
+
+    public void saveModel(FunctionAppComboBoxModel functionAppComboBoxModel) {
+        if (functionAppComboBoxModel.getFunctionDeployModel() != null) {
+            setFunctionDeployModel(functionAppComboBoxModel.getFunctionDeployModel());
+            return;
+        }
+        setFunctionId(functionAppComboBoxModel.getResourceId());
+        setAppName(functionAppComboBoxModel.getAppName());
+        setResourceGroup(functionAppComboBoxModel.getResourceGroup());
+        setSubscription(functionAppComboBoxModel.getSubscriptionId());
+        if (functionAppComboBoxModel.isNewCreateResource() && functionAppComboBoxModel.getFunctionAppConfig() != null) {
+            setNewResource(true);
+            final FunctionAppConfig functionAppConfig = functionAppComboBoxModel.getFunctionAppConfig();
+            setAppServicePlanName(functionAppConfig.getServicePlan().name());
+            setAppServicePlanResourceGroup(functionAppConfig.getServicePlan().resourceGroupName());
+            setPricingTier(functionAppConfig.getServicePlan().pricingTier().toSkuDescription().size());
+            setRegion(functionAppConfig.getServicePlan().regionName());
+            final IntelliJFunctionRuntimeConfiguration runtimeConfiguration = new IntelliJFunctionRuntimeConfiguration();
+            runtimeConfiguration.setOs(
+                    functionAppConfig.getPlatform().getOs() == OperatingSystem.WINDOWS ? "windows" : "linux");
+            runtimeConfiguration.setJavaVersion(functionAppConfig.getPlatform().getStackVersionOrJavaVersion());
+            setRuntime(runtimeConfiguration);
+        } else {
+            setNewResource(false);
+            final FunctionApp functionApp = functionAppComboBoxModel.getResource();
+            if (functionApp != null) {
+                setRegion(functionApp.regionName());
+                final IntelliJFunctionRuntimeConfiguration runtimeConfiguration = new IntelliJFunctionRuntimeConfiguration();
+                runtimeConfiguration.setOs(functionApp.operatingSystem().name());
+                final String javaVersion = functionApp.operatingSystem() == OperatingSystem.WINDOWS ?
+                                           String.format("%s-Java %s", "Windows", functionApp.javaVersion()) :
+                                           String.format("%s-%s", "Linux", functionApp.linuxFxVersion().replace(
+                                                   "|", "-"));
+                runtimeConfiguration.setJavaVersion(functionApp.javaVersion().toString());
+                setRuntime(runtimeConfiguration);
+            }
         }
     }
 

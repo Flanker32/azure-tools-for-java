@@ -104,7 +104,7 @@ public class FunctionCreationDialog extends AzureDialogWrapper {
         setTitle(DIALOG_TITLE);
         getRootPane().setDefaultButton(buttonOK);
 
-        this.functionConfiguration = new IntelliJFunctionContext(project);
+        this.functionConfiguration = new IntelliJFunctionContext();
 
         rdoLinuxOS.addActionListener(e -> selectOS());
         rdoWindowsOS.addActionListener(e -> selectOS());

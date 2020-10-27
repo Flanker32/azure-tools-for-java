@@ -23,12 +23,14 @@
 package com.microsoft.azure.toolkit.lib.function;
 
 import com.microsoft.azure.toolkit.lib.appservice.AppServiceConfig;
+import com.microsoft.azure.toolkit.lib.model.ApplicationInsightsModel;
+import lombok.Builder;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @SuperBuilder
 public class FunctionAppConfig extends AppServiceConfig {
-    private String insightsName;
-    private String instrumentationKey;
+    @Builder.Default
+    private ApplicationInsightsModel applicationInsightsModel = null;
 }
