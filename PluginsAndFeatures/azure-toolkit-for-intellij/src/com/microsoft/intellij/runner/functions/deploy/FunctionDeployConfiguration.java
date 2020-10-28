@@ -36,11 +36,11 @@ import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.common.function.configurations.RuntimeConfiguration;
 import com.microsoft.azure.management.appservice.FunctionApp;
+import com.microsoft.azure.management.appservice.JavaVersion;
 import com.microsoft.azure.management.appservice.OperatingSystem;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.toolkit.intellij.function.FunctionAppComboBoxModel;
 import com.microsoft.azure.toolkit.lib.function.FunctionAppConfig;
-import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel;
+import com.microsoft.azure.toolkit.lib.model.ApplicationInsightsModel;
 import com.microsoft.intellij.runner.AzureRunConfigurationBase;
 import com.microsoft.intellij.runner.functions.IntelliJFunctionRuntimeConfiguration;
 import com.microsoft.intellij.runner.functions.core.FunctionUtils;
@@ -120,10 +120,6 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
 
     public void setFunctionId(String functionId) {
         functionDeployModel.setFunctionId(functionId);
-    }
-
-    public void setRuntime(IntelliJFunctionRuntimeConfiguration runtime) {
-        functionDeployModel.setRuntime(runtime);
     }
 
     public void setAppSettings(Map<String, String> appSettings) {
@@ -211,6 +207,38 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
         this.functionDeployModel = functionDeployModel;
     }
 
+    public String getOs() {
+        return functionDeployModel.getOs();
+    }
+
+    public void setOs(final String os) {
+        functionDeployModel.setOs(os);
+    }
+
+    public String getJavaVersion() {
+        return functionDeployModel.getJavaVersion();
+    }
+
+    public void setJavaVersion(final String javaVersion) {
+        functionDeployModel.setJavaVersion(javaVersion);
+    }
+
+    public void setInstrumentationKey(String instrumentationKey) {
+        this.functionDeployModel.setInstrumentationKey(instrumentationKey);
+    }
+
+    public String getInstrumentationKey() {
+        return functionDeployModel.getInstrumentationKey();
+    }
+
+    public void setInsightsName(String insightsName) {
+        this.functionDeployModel.setInsightsName(insightsName);
+    }
+
+    public String getInsightsName() {
+        return functionDeployModel.getInsightsName();
+    }
+
     public void saveModel(FunctionAppComboBoxModel functionAppComboBoxModel) {
         if (functionAppComboBoxModel.getFunctionDeployModel() != null) {
             setFunctionDeployModel(functionAppComboBoxModel.getFunctionDeployModel());
@@ -224,27 +252,20 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
             setNewResource(true);
             final FunctionAppConfig functionAppConfig = functionAppComboBoxModel.getFunctionAppConfig();
             setAppServicePlanName(functionAppConfig.getServicePlan().name());
-            setAppServicePlanResourceGroup(functionAppConfig.getServicePlan().resourceGroupName());
             setPricingTier(functionAppConfig.getServicePlan().pricingTier().toSkuDescription().size());
-            setRegion(functionAppConfig.getServicePlan().regionName());
-            final IntelliJFunctionRuntimeConfiguration runtimeConfiguration = new IntelliJFunctionRuntimeConfiguration();
-            runtimeConfiguration.setOs(
-                    functionAppConfig.getPlatform().getOs() == OperatingSystem.WINDOWS ? "windows" : "linux");
-            runtimeConfiguration.setJavaVersion(functionAppConfig.getPlatform().getStackVersionOrJavaVersion());
-            setRuntime(runtimeConfiguration);
+            setRegion(functionAppConfig.getRegion().name());
+            setOs(functionAppConfig.getPlatform().getOs().name());
+            setJavaVersion(functionAppConfig.getPlatform().getStackVersionOrJavaVersion());
+            final ApplicationInsightsModel insightsModel = functionAppConfig.getApplicationInsightsModel();
+            setInsightsName(insightsModel.getName());
+            setInstrumentationKey(insightsModel.getInstrumentationKey());
         } else {
             setNewResource(false);
             final FunctionApp functionApp = functionAppComboBoxModel.getResource();
             if (functionApp != null) {
                 setRegion(functionApp.regionName());
-                final IntelliJFunctionRuntimeConfiguration runtimeConfiguration = new IntelliJFunctionRuntimeConfiguration();
-                runtimeConfiguration.setOs(functionApp.operatingSystem().name());
-                final String javaVersion = functionApp.operatingSystem() == OperatingSystem.WINDOWS ?
-                                           String.format("%s-Java %s", "Windows", functionApp.javaVersion()) :
-                                           String.format("%s-%s", "Linux", functionApp.linuxFxVersion().replace(
-                                                   "|", "-"));
-                runtimeConfiguration.setJavaVersion(functionApp.javaVersion().toString());
-                setRuntime(runtimeConfiguration);
+                setOs(functionApp.operatingSystem().name());
+                setJavaVersion(FunctionUtils.getFunctionJavaVersion(functionApp));
             }
         }
     }
@@ -255,7 +276,7 @@ public class FunctionDeployConfiguration extends AzureRunConfigurationBase<Funct
         if (this.module == null) {
             throw new ConfigurationException(NEED_SPECIFY_MODULE);
         }
-        if (StringUtils.isEmpty(this.getFunctionId())) {
+        if (StringUtils.isEmpty(this.getFunctionId()) && !isNewResource()) {
             throw new ConfigurationException(NEED_SPECIFY_TARGET_FUNCTION);
         }
     }

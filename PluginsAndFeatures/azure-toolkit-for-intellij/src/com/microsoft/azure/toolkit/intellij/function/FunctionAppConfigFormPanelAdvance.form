@@ -25,7 +25,7 @@
             <properties/>
             <border type="none"/>
             <children>
-              <nested-form id="583a5" form-file="com/microsoft/azure/toolkit/intellij/appservice/AppServiceConfigFormPanelAdvanced.form" binding="appServiceConfigPanelAdvanced" custom-create="true">
+              <nested-form id="583a5" form-file="com/microsoft/azure/toolkit/intellij/appservice/AppServiceInfoAdvancedPanel.form" binding="appServiceConfigPanelAdvanced" custom-create="true">
                 <constraints>
                   <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
@@ -51,6 +51,7 @@
                 </constraints>
                 <properties>
                   <text value="Application Insights :"/>
+                  <visible value="true"/>
                 </properties>
               </component>
               <vspacer id="566b8">
@@ -70,7 +71,7 @@
                 <properties>
                   <focusable value="false"/>
                   <font/>
-                  <text value="Instance Details"/>
+                  <text value="Application Insights"/>
                   <titleFont style="1"/>
                 </properties>
               </component>
@@ -80,6 +81,7 @@
                 </constraints>
                 <properties>
                   <text value="Enable Application Insights :"/>
+                  <visible value="true"/>
                 </properties>
               </component>
               <component id="62026" class="javax.swing.JRadioButton" binding="noRadioButton" default-binding="true">
@@ -95,6 +97,7 @@
                   <grid row="1" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
+                  <selected value="true"/>
                   <text value="Yes"/>
                 </properties>
               </component>

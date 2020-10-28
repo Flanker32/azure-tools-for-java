@@ -31,6 +31,7 @@ import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.intellij.runner.functions.component.CreateApplicationInsightsDialog;
 import com.microsoft.tooling.msservices.helpers.azure.sdk.AzureSDKManager;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -54,10 +55,10 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
     @NotNull
     @Override
     protected List<? extends ApplicationInsightsModel> loadItems() throws Exception {
-        return AzureSDKManager.getInsightsResources(subscription.subscriptionId())
-                .stream()
-                .map(ApplicationInsightsModel::new)
-                .collect(Collectors.toList());
+        return subscription == null ? Collections.EMPTY_LIST : AzureSDKManager.getInsightsResources(subscription.subscriptionId())
+                                                                              .stream()
+                                                                              .map(ApplicationInsightsModel::new)
+                                                                              .collect(Collectors.toList());
     }
 
     @Nullable
@@ -80,8 +81,10 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
         final CreateApplicationInsightsDialog dialog = new CreateApplicationInsightsDialog();
         dialog.pack();
         if (dialog.showAndGet()) {
-            final ApplicationInsightsModel model = ApplicationInsightsModel.builder().name(dialog.getApplicationInsightsName()).build();
-            setValue(model);
+            final ApplicationInsightsModel model =
+                    ApplicationInsightsModel.builder().name(dialog.getApplicationInsightsName()).newCreate(true).build();
+            addItem(model);
+            setSelectedItem(model);
         }
     }
 }

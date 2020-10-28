@@ -55,8 +55,6 @@ public class IntelliJFunctionContext implements IFunctionContext {
 
     private String deployment;
 
-    private IntelliJFunctionRuntimeConfiguration runtime;
-
     private Map<String, String> appSettings = new HashMap<>();
 
     private String moduleName;
@@ -64,6 +62,23 @@ public class IntelliJFunctionContext implements IFunctionContext {
     private String insightsName;
 
     private String instrumentationKey;
+
+    private String os;
+
+    private String javaVersion;
+
+    @Override
+    public IntelliJFunctionRuntimeConfiguration getRuntime() {
+        IntelliJFunctionRuntimeConfiguration result = new IntelliJFunctionRuntimeConfiguration();
+        result.setJavaVersion(javaVersion);
+        result.setOs(os);
+        return result;
+    }
+
+    public void saveRuntime(IntelliJFunctionRuntimeConfiguration runtime) {
+        setOs(runtime.getOs());
+        setJavaVersion(runtime.getJavaVersion());
+    }
 
     @Override
     public String getDeploymentType() {

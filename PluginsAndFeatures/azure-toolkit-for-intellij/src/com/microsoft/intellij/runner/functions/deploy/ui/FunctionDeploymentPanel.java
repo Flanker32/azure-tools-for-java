@@ -23,36 +23,26 @@
 package com.microsoft.intellij.runner.functions.deploy.ui;
 
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.Comparing;
 import com.intellij.packaging.artifacts.Artifact;
 import com.intellij.ui.HyperlinkLabel;
 import com.intellij.ui.ListCellRendererWrapper;
-import com.intellij.ui.PopupMenuListenerAdapter;
-import com.microsoft.azure.management.appservice.FunctionApp;
 import com.microsoft.azure.toolkit.intellij.function.FunctionAppComboBox;
 import com.microsoft.azure.toolkit.intellij.function.FunctionAppComboBoxModel;
-import com.microsoft.azuretools.core.mvp.model.ResourceEx;
 import com.microsoft.intellij.runner.AzureSettingPanel;
-import com.microsoft.intellij.runner.functions.component.FunctionAppCombineBoxEditor;
-import com.microsoft.intellij.runner.functions.component.FunctionAppCombineBoxRender;
 import com.microsoft.intellij.runner.functions.component.table.AppSettingsTable;
 import com.microsoft.intellij.runner.functions.component.table.AppSettingsTableUtils;
 import com.microsoft.intellij.runner.functions.core.FunctionUtils;
 import com.microsoft.intellij.runner.functions.deploy.FunctionDeployConfiguration;
-import com.microsoft.intellij.runner.functions.deploy.ui.creation.FunctionCreationDialog;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.idea.maven.project.MavenProject;
 
 import javax.swing.*;
-import javax.swing.event.PopupMenuEvent;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 
 import static com.microsoft.intellij.common.CommonConst.EMPTY_TEXT;
@@ -188,7 +178,7 @@ public class FunctionDeploymentPanel extends AzureSettingPanel<FunctionDeployCon
         functionAppComboBox.refreshItems();
         functionAppComboBox.addItemListener(event -> {
             final FunctionAppComboBoxModel model = getSelectedFunctionApp();
-            if (model != null && model.getResource() != null) {
+            if (model != null && model.getResource() != null && !model.isNewCreateResource()) {
                 presenter.loadAppSettings(model.getResource());
             }
         });

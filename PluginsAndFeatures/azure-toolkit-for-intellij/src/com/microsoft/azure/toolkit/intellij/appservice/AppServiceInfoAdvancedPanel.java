@@ -55,7 +55,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public class AppServiceConfigFormPanelAdvanced<T extends AppServiceConfig> extends JPanel implements AzureFormPanel<T> {
+public class AppServiceInfoAdvancedPanel<T extends AppServiceConfig> extends JPanel implements AzureFormPanel<T> {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
     private static final String NOT_APPLICABLE = "N/A";
     private final Project project;
@@ -76,7 +76,7 @@ public class AppServiceConfigFormPanelAdvanced<T extends AppServiceConfig> exten
     private TitledSeparator deploymentTitle;
     private JLabel deploymentLabel;
 
-    public AppServiceConfigFormPanelAdvanced(final Project project, final Supplier<T> supplier) {
+    public AppServiceInfoAdvancedPanel(final Project project, final Supplier<T> supplier) {
         super();
         this.project = project;
         this.supplier = supplier;

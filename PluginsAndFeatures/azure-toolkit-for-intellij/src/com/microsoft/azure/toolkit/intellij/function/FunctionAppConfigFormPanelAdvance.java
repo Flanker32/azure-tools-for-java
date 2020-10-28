@@ -23,7 +23,7 @@
 package com.microsoft.azure.toolkit.intellij.function;
 
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.toolkit.intellij.appservice.AppServiceConfigFormPanelAdvanced;
+import com.microsoft.azure.toolkit.intellij.appservice.AppServiceInfoAdvancedPanel;
 import com.microsoft.azure.toolkit.intellij.appservice.insights.ApplicationInsightsComboBox;
 import com.microsoft.azure.toolkit.intellij.common.AzureFormPanel;
 import com.microsoft.azure.toolkit.lib.appservice.Platform;
@@ -41,7 +41,7 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
     private JTabbedPane tabPane;
     private JPanel pnlRoot;
     private Project project;
-    private AppServiceConfigFormPanelAdvanced<FunctionAppConfig> appServiceConfigPanelAdvanced;
+    private AppServiceInfoAdvancedPanel<FunctionAppConfig> appServiceConfigPanelAdvanced;
     private ApplicationInsightsComboBox applicationInsightsComboBox;
     private JRadioButton noRadioButton;
     private JRadioButton yesRadioButton;
@@ -93,7 +93,7 @@ public class FunctionAppConfigFormPanelAdvance extends JPanel implements AzureFo
 
     private void createUIComponents() {
         // TODO: place custom component creation code here
-        appServiceConfigPanelAdvanced = new AppServiceConfigFormPanelAdvanced(project, () -> FunctionAppConfig.builder().build());
+        appServiceConfigPanelAdvanced = new AppServiceInfoAdvancedPanel(project, () -> FunctionAppConfig.builder().build());
         // Function does not support file deployment
         appServiceConfigPanelAdvanced.setDeploymentVisible(false);
         appServiceConfigPanelAdvanced.getSelectorPlatform().setPlatformList(Arrays.asList(Platform.AzureFunction.values()));

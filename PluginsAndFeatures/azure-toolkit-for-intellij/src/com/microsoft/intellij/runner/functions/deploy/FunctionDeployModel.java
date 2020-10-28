@@ -22,10 +22,7 @@
 
 package com.microsoft.intellij.runner.functions.deploy;
 
-import com.microsoft.azure.management.appservice.OperatingSystem;
-import com.microsoft.azure.toolkit.lib.function.FunctionAppConfig;
 import com.microsoft.intellij.runner.functions.IntelliJFunctionContext;
-import com.microsoft.intellij.runner.functions.IntelliJFunctionRuntimeConfiguration;
 
 public class FunctionDeployModel extends IntelliJFunctionContext {
 
@@ -34,21 +31,6 @@ public class FunctionDeployModel extends IntelliJFunctionContext {
 
     public FunctionDeployModel() {
 
-    }
-
-    public FunctionDeployModel(final FunctionAppConfig functionAppConfig) {
-        super();
-        setSubscription(functionAppConfig.getSubscription().subscriptionId());
-        setAppName(functionAppConfig.getName());
-        setAppServicePlanName(functionAppConfig.getServicePlan().name());
-        setAppServicePlanResourceGroup(functionAppConfig.getServicePlan().resourceGroupName());
-        setPricingTier(functionAppConfig.getServicePlan().pricingTier().toSkuDescription().size());
-        setRegion(functionAppConfig.getServicePlan().regionName());
-        final IntelliJFunctionRuntimeConfiguration runtimeConfiguration = new IntelliJFunctionRuntimeConfiguration();
-        runtimeConfiguration.setOs(
-                functionAppConfig.getPlatform().getOs() == OperatingSystem.WINDOWS ? "windows" : "linux");
-        runtimeConfiguration.setJavaVersion(functionAppConfig.getPlatform().getStackVersionOrJavaVersion());
-        setRuntime(runtimeConfiguration);
     }
 
     public String getFunctionId() {

@@ -54,7 +54,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-public class AppServiceConfigFormPanelBasic<T extends AppServiceConfig> extends JPanel implements AzureFormPanel<T> {
+public class AppServiceInfoBasicPanel<T extends AppServiceConfig> extends JPanel implements AzureFormPanel<T> {
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMddHHmmss");
     private static final int RG_NAME_MAX_LENGTH = 90;
     private static final int SP_NAME_MAX_LENGTH = 40;
@@ -71,7 +71,7 @@ public class AppServiceConfigFormPanelBasic<T extends AppServiceConfig> extends 
     private Subscription subscription;
     private Region defaultRegion;
 
-    public AppServiceConfigFormPanelBasic(final Project project, final Supplier<T> supplier) {
+    public AppServiceInfoBasicPanel(final Project project, final Supplier<T> supplier) {
         super();
         this.project = project;
         this.supplier = supplier;

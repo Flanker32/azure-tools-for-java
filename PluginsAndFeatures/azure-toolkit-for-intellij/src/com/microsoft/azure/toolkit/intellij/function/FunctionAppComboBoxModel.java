@@ -42,21 +42,17 @@ public class FunctionAppComboBoxModel extends AppServiceComboBoxModel<FunctionAp
         super(resourceEx);
         final FunctionApp functionApp = resourceEx.getResource();
         this.runtime = functionApp.operatingSystem() == OperatingSystem.WINDOWS ?
-                       String.format("%s-%s", "Windows", functionApp.javaVersion()) :
-                       String.format("%s-%s", "Linux", functionApp.linuxFxVersion().replace("|", "-"));
+                       String.format("%s-Java %s", "Windows", functionApp.javaVersion()) :
+                       String.format("%s-%s", "Linux", functionApp.linuxFxVersion().replace("|", " "));
     }
 
     public FunctionAppComboBoxModel(FunctionDeployModel functionDeployModel) {
-        this.resourceId = functionDeployModel.getFunctionId();
-        // In case recover from configuration, get the app name from resource id
-        this.appName =
-                StringUtils.isEmpty(functionDeployModel.getAppName()) && StringUtils.isNotEmpty(resourceId) ?
-                AzureMvpModel.getSegment(resourceId, "sites") :
-                functionDeployModel.getAppName();
-        this.resourceGroup = functionDeployModel.getResourceGroup();
+        this.isNewCreateResource = functionDeployModel.isNewResource();
         this.subscriptionId = functionDeployModel.getSubscription();
-        final IntelliJFunctionRuntimeConfiguration runtime = functionDeployModel.getRuntime();
-        this.runtime = String.format("%s-Java ", StringUtils.capitalize(runtime.getOs()), runtime.getJavaVersion());
+        this.appName = isNewCreateResource ? functionDeployModel.getAppName() : AzureMvpModel.getSegment(resourceId, "sites");
+        this.resourceId = functionDeployModel.getFunctionId();
+        this.resourceGroup = functionDeployModel.getResourceGroup();
+        this.runtime = String.format("%s-Java %s", functionDeployModel.getOs(), functionDeployModel.getJavaVersion());
         this.functionDeployModel = functionDeployModel;
     }
 
