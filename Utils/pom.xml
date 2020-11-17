@@ -51,6 +51,7 @@
         <azure.storage.blob.batch.version>12.6.0</azure.storage.blob.batch.version>
         <azure.storage.file.share.version>12.6.0</azure.storage.file.share.version>
         <azure.storage.file.datalake.version>12.2.0</azure.storage.file.datalake.version>
+        <jtwig.core.version>5.87.0.RELEASE</jtwig.core.version>
     </properties>
     <modules>
         <module>./check-tools</module>
@@ -498,6 +499,11 @@
                 <groupId>org.apache.commons</groupId>
                 <artifactId>commons-lang3</artifactId>
                 <version>3.10</version>
+            </dependency>
+            <dependency>
+                <groupId>org.jtwig</groupId>
+                <artifactId>jtwig-core</artifactId>
+                <version>${jtwig.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.sourceforge.htmlunit</groupId>
