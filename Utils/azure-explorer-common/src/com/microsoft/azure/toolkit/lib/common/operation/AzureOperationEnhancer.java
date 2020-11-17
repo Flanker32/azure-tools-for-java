@@ -22,40 +22,30 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
-import com.microsoft.applicationinsights.core.dependencies.apachecommons.lang3.reflect.FieldUtils;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
-import com.microsoft.azuretools.azurecommons.helpers.NotNull;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
-import org.aspectj.lang.reflect.CodeSignature;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.jtwig.JtwigModel;
-import org.jtwig.JtwigTemplate;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
 
 @Aspect
-public class AzureOperationEnhancer {
+public final class AzureOperationEnhancer {
 
     @Pointcut("execution(@AzureOperation * *..*.*(..))")
     public void operation() {
     }
 
-    @Before("operation()")
-    public void aroundOperation(JoinPoint point) {
-        System.out.println("###################################################");
-        final AzureOperation operation = getOperation(point);
-        final String message = getOperationMessage(operation, point);
-        System.out.println(message);
+    @Around("operation()")
+    public Object aroundOperation(ProceedingJoinPoint point) throws Throwable {
+        System.out.println("####################### start calling stack ############################");
+        AzureOperationContext.getOperations().forEach(o -> System.out.println(AzureOperationUtils.getOperationTitle(o)));
+        final AzureOperationRef operation = toOperationRef(point);
+        System.out.println(AzureOperationUtils.getOperationTitle(operation));
+        System.out.println("####################### end calling stack ############################");
+        return AzureOperationContext.execute(operation, point::proceed);
     }
 
     @AfterThrowing(pointcut = "operation()", throwing = "e")
@@ -64,58 +54,23 @@ public class AzureOperationEnhancer {
             // Do not handle checked exception
             throw e;
         }
-        final AzureOperation operation = getOperation(point);
+        final AzureOperationRef operation = toOperationRef(point);
         if (operation != null) {
-            final String message = getOperationMessage(operation, point);
+            final String message = AzureOperationUtils.getOperationTitle(operation);
             throw new AzureToolkitRuntimeException(message, e);
         }
         throw e;
     }
 
-    private static AzureOperation getOperation(@NotNull JoinPoint point) {
+    private static AzureOperationRef toOperationRef(JoinPoint point) {
         final MethodSignature signature = (MethodSignature) point.getSignature();
-        final Method method = signature.getMethod();
-        return method.getAnnotation(AzureOperation.class);
-    }
-
-    private static String getOperationMessage(@NotNull AzureOperation operation, @NotNull JoinPoint point) {
-        final String messageTemplate = operation.value();
-        final String[] parameters = operation.params();
-        final String[] params = Arrays.stream(parameters).map(expression -> interpretExpression(expression, point)).toArray(String[]::new);
-        return String.format(messageTemplate, (Object[]) params);
-    }
-
-    private static String interpretExpression(String expression, JoinPoint point) {
-        final String fixedExpression = StringUtils.substring(expression, 1);
-        final String parameterName = StringUtils.contains(expression, ".")
-            ? StringUtils.substring(fixedExpression, 0, StringUtils.indexOf(fixedExpression, "."))
-            : fixedExpression;
-        Object object = null;
-        if (StringUtils.startsWith(expression, "$")) {
-            // process parameter
-            final CodeSignature codeSignature = (CodeSignature) point.getSignature();
-            final int parameterIndex = ArrayUtils.indexOf(codeSignature.getParameterNames(), parameterName);
-            object = parameterIndex >= 0 ? point.getArgs()[parameterIndex] : null;
-        } else if (StringUtils.startsWith(expression, "@")) {
-            // member variables
-            final Field variableField = FieldUtils.getField(point.getThis().getClass(), parameterName, true);
-            try {
-                if (variableField != null) {
-                    object = variableField.get(point.getThis());
-                }
-            } catch (IllegalArgumentException | IllegalAccessException e) {
-                // swallow exception while get variables
-            }
-        } else {
-            return expression;
-        }
-        return object != null ? interpretInline(fixedExpression, Collections.singletonMap(parameterName, object)) : null;
-    }
-
-    private static String interpretInline(String expr, Map<String, Object> variableMap) {
-        final JtwigTemplate template = JtwigTemplate.inlineTemplate(String.format("{{%s}}", expr));
-        final JtwigModel model = JtwigModel.newModel();
-        variableMap.forEach(model::with);
-        return template.render(model);
+        final Object[] args = point.getArgs();
+        final Object instance = point.getThis();
+        return AzureOperationRef.builder()
+                                .instance(instance)
+                                .method(signature.getMethod())
+                                .paramNames(signature.getParameterNames())
+                                .paramValues(args)
+                                .build();
     }
 }

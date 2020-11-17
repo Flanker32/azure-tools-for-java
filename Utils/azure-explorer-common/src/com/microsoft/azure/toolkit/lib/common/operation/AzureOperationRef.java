@@ -20,25 +20,18 @@
  * SOFTWARE.
  */
 
-package com.microsoft.azure.toolkit.lib.common.task;
+package com.microsoft.azure.toolkit.lib.common.operation;
 
+import lombok.Builder;
 import lombok.Data;
 
+import java.lang.reflect.Method;
+
 @Data
-public class AzureTask {
-    private Runnable runnable;
-    private Object project;
-    private boolean cancellable;
-    private String title;
-
-    public AzureTask(Runnable runnable) {
-        this.runnable = runnable;
-    }
-
-    public AzureTask(Object project, String title, boolean cancellable, Runnable runnable) {
-        this.project = project;
-        this.title = title;
-        this.cancellable = cancellable;
-        this.runnable = runnable;
-    }
+@Builder
+public class AzureOperationRef {
+    private Method method;
+    private String[] paramNames;
+    private Object[] paramValues;
+    private Object instance;
 }
