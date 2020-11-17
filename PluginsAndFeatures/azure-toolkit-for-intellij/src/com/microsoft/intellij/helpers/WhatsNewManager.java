@@ -84,7 +84,7 @@ public enum WhatsNewManager {
         virtualFile.setContent(null, content, true);
         virtualFile.putUserData(WHAT_S_NEW_ID, WHAT_S_NEW_CONSTANT);
         virtualFile.setWritable(false);
-        AzureTaskManager.getInstance().runAndWait(() -> {
+        ApplicationManager.getApplication().invokeAndWait(() -> {
             final FileEditor[] fileEditors = fileEditorManager.openFile(virtualFile, true, true);
             for (FileEditor fileEditor : fileEditors) {
                 if (fileEditor instanceof MarkdownSplitEditor) {
@@ -93,7 +93,7 @@ public enum WhatsNewManager {
                                                                            true);
                 }
             }
-        });
+        }, ModalityState.defaultModalityState());
     }
 
     private String getWhatsNewContent() throws IOException {
