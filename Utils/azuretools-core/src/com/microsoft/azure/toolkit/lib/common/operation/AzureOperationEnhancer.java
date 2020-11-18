@@ -22,7 +22,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.operation;
 
-import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitOperationException;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.AfterThrowing;
@@ -51,15 +51,10 @@ public final class AzureOperationEnhancer {
     @AfterThrowing(pointcut = "operation()", throwing = "e")
     public void onOperationException(JoinPoint point, Throwable e) throws Throwable {
         if (!(e instanceof RuntimeException)) {
-            // Do not handle checked exception
-            throw e;
+            throw e; // Do not handle checked exception
         }
         final AzureOperationRef operation = toOperationRef(point);
-        if (operation != null) {
-            final String message = AzureOperationUtils.getOperationTitle(operation);
-            throw new AzureToolkitRuntimeException(message, e);
-        }
-        throw e;
+        throw new AzureToolkitOperationException(operation, e);
     }
 
     private static AzureOperationRef toOperationRef(JoinPoint point) {

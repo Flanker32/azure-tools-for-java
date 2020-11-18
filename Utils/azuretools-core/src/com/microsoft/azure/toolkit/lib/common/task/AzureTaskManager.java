@@ -77,6 +77,12 @@ public abstract class AzureTaskManager {
     protected abstract void doRunInModal(AzureTask task);
 
     private Runnable initClosure(final Runnable runnable) {
-        return AzureOperationsContext.derive(runnable);
+        return AzureOperationsContext.deriveClosure(() -> {
+            try {
+                runnable.run();
+            } catch (final RuntimeException e) {
+                //TODO: @miller handle exception
+            }
+        });
     }
 }

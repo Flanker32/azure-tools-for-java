@@ -48,15 +48,11 @@ public class AzureOperationsContext {
         }
     }
 
-    public static Runnable derive(final Runnable runnable) {
+    public static Runnable deriveClosure(final Runnable runnable) {
         final Deque<AzureOperationRef> closure = new ArrayDeque<>(AzureOperationsContext.getOperations());
         return () -> {
             operations.set(closure);
-            try {
-                runnable.run();
-            } catch (final RuntimeException e) {
-                //TODO: @miller handle exception
-            }
+            runnable.run();
         };
     }
 
