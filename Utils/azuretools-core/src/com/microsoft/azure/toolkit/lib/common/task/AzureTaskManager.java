@@ -22,7 +22,7 @@
 
 package com.microsoft.azure.toolkit.lib.common.task;
 
-import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationContext;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperationsContext;
 
 public abstract class AzureTaskManager {
 
@@ -77,6 +77,6 @@ public abstract class AzureTaskManager {
     protected abstract void doRunInModal(AzureTask task);
 
     private Runnable initClosure(final Runnable runnable) {
-        return AzureOperationContext.derive(runnable);
+        return AzureOperationsContext.derive(runnable);
     }
 }

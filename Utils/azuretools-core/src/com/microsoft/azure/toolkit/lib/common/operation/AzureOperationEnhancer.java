@@ -41,11 +41,11 @@ public final class AzureOperationEnhancer {
     @Around("operation()")
     public Object aroundOperation(ProceedingJoinPoint point) throws Throwable {
         System.out.println("####################### start calling stack ############################");
-        AzureOperationContext.getOperations().forEach(o -> System.out.println(AzureOperationUtils.getOperationTitle(o)));
+        AzureOperationsContext.getOperations().forEach(o -> System.out.println(AzureOperationUtils.getOperationTitle(o)));
         final AzureOperationRef operation = toOperationRef(point);
         System.out.println(AzureOperationUtils.getOperationTitle(operation));
         System.out.println("####################### end calling stack ############################");
-        return AzureOperationContext.execute(operation, point::proceed);
+        return AzureOperationsContext.execute(operation, point::proceed);
     }
 
     @AfterThrowing(pointcut = "operation()", throwing = "e")

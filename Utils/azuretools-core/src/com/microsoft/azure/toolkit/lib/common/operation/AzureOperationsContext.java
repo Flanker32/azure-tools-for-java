@@ -24,7 +24,7 @@ package com.microsoft.azure.toolkit.lib.common.operation;
 
 import java.util.*;
 
-public class AzureOperationContext {
+public class AzureOperationsContext {
     private static final ThreadLocal<Deque<AzureOperationRef>> operations = ThreadLocal.withInitial(ArrayDeque::new);
 
     public static List<AzureOperationRef> getOperations() {
@@ -40,16 +40,16 @@ public class AzureOperationContext {
     }
 
     public static Object execute(final AzureOperationRef operation, final OperationProceedable proceedable) throws Throwable {
-        AzureOperationContext.push(operation);
+        AzureOperationsContext.push(operation);
         try {
             return proceedable.proceed();
         } finally {
-            AzureOperationContext.pop();
+            AzureOperationsContext.pop();
         }
     }
 
     public static Runnable derive(final Runnable runnable) {
-        final Deque<AzureOperationRef> closure = new ArrayDeque<>(AzureOperationContext.getOperations());
+        final Deque<AzureOperationRef> closure = new ArrayDeque<>(AzureOperationsContext.getOperations());
         return () -> {
             operations.set(closure);
             try {

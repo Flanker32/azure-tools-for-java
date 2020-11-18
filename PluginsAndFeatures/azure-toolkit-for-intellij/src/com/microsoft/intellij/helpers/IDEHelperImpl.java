@@ -33,6 +33,7 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.application.ApplicationManager;
+import com.intellij.openapi.application.ModalityState;
 import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompileStatusNotification;
@@ -377,11 +378,11 @@ public class IDEHelperImpl implements IDEHelper {
                 indicator.setIndeterminate(true);
                 writeContentTo(virtualFile.getOutputStream(null), file, errorHandler)
                     .doOnError(errorHandler::accept)
-                    .doOnCompleted(() -> AzureTaskManager.getInstance().runLater(() -> {
+                    .doOnCompleted(() -> ApplicationManager.getApplication().invokeLater(() -> {
                         if (fileEditorManager.openFile(virtualFile, true, true).length == 0) {
                             Messages.showWarningDialog(failure, "Open File");
                         }
-                    }))
+                    }, ModalityState.NON_MODAL))
                     .subscribe();
             }
         };

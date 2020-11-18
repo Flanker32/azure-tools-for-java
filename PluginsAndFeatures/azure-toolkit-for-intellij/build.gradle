@@ -109,6 +109,7 @@ dependencies {
     compile 'net.minidev:json-smart:2.3'
     compile 'com.microsoft.azure:azure-client-runtime:1.7.5', { force = true }
     compile 'com.microsoft.azure:azure-client-authentication:1.7.5', { force = true }
+    aspect "com.microsoft.azuretools:azuretools-core:3.46.0"
     compile 'com.microsoft.azuretools:azuretools-core:3.46.0', {
         exclude group: "com.microsoft.azure", module: "azure-client-authentication"
         exclude group: "com.microsoft.azure", module: "azure-client-runtime"
@@ -152,8 +153,6 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-stdlib"
     testCompile "org.jetbrains.kotlin:kotlin-test"
     testCompile "org.jetbrains.kotlin:kotlin-test-junit"
-
-    aspect "com.microsoft.azuretools:azure-explorer-common:3.46.0"
 }
 
 test {
