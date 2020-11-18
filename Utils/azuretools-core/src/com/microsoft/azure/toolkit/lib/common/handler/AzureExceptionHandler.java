@@ -36,17 +36,17 @@ public abstract class AzureExceptionHandler {
         return AzureExceptionHandler.handler;
     }
 
-    public void handleForegroundException(Throwable throwable, @Nullable AzureExceptionAction... action) {
-        onHandleForegroundException(throwable, action);
+    public void handleException(Throwable throwable, @Nullable AzureExceptionAction... action) {
+        onHandleException(throwable, action);
     }
 
-    public void handleBackgroundException(Throwable throwable, @Nullable AzureExceptionAction... action) {
-        onHandleBackgroundException(throwable, action);
+    public void handleException(Throwable throwable, boolean isBackGround, @Nullable AzureExceptionAction... action) {
+        onHandleException(throwable, isBackGround, action);
     }
 
-    protected abstract void onHandleForegroundException(Throwable throwable, @Nullable AzureExceptionAction[] action);
+    protected abstract void onHandleException(Throwable throwable, @Nullable AzureExceptionAction[] action);
 
-    protected abstract void onHandleBackgroundException(Throwable throwable, @Nullable AzureExceptionAction[] action);
+    protected abstract void onHandleException(Throwable throwable, boolean isBackGround, @Nullable AzureExceptionAction[] action);
 
     public interface AzureExceptionAction {
         String name();
