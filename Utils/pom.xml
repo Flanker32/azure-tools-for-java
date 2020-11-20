@@ -105,13 +105,13 @@
                     <artifactId>aspectj-maven-plugin</artifactId>
                     <version>1.11</version>
                     <configuration>
-                        <showWeaveInfo>true</showWeaveInfo>
+                        <showWeaveInfo>false</showWeaveInfo>
                         <source>1.8</source>
                         <target>1.8</target>
                         <Xlint>ignore</Xlint>
                         <complianceLevel>1.8</complianceLevel>
                         <encoding>UTF-8</encoding>
-                        <verbose>true</verbose>
+                        <verbose>false</verbose>
                         <outxml>true</outxml>
                         <forceAjcCompile>true</forceAjcCompile>
                         <sources/><!-- this is important!-->
@@ -494,6 +494,16 @@
                 <version>2.3.8</version>
             </dependency>
             <dependency>
+                <groupId>com.microsoft.azure</groupId>
+                <artifactId>azure-tools-common</artifactId>
+                <version>0.10.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.azure.appplatform.v2019_05_01_preview</groupId>
+                <artifactId>azure-mgmt-appplatform</artifactId>
+                <version>1.0.0-beta-2</version>
+            </dependency>
+            <dependency>
                 <groupId>com.microsoft.rest</groupId>
                 <artifactId>client-runtime</artifactId>
                 <version>${azure.client.version}</version>
@@ -519,6 +529,18 @@
                         <artifactId>xml-apis</artifactId>
                     </exclusion>
                 </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-module-junit4</artifactId>
+                <version>1.7.0RC4</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.powermock</groupId>
+                <artifactId>powermock-api-mockito2</artifactId>
+                <version>1.7.0RC4</version>
+                <scope>test</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>

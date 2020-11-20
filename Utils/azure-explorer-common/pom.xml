@@ -45,13 +45,13 @@
                 <artifactId>aspectj-maven-plugin</artifactId>
                 <version>1.11</version>
                 <configuration>
-                    <showWeaveInfo>true</showWeaveInfo>
+                    <showWeaveInfo>false</showWeaveInfo>
                     <source>1.8</source>
                     <target>1.8</target>
                     <Xlint>ignore</Xlint>
                     <complianceLevel>1.8</complianceLevel>
                     <encoding>UTF-8</encoding>
-                    <verbose>true</verbose>
+                    <verbose>false</verbose>
                     <outxml>true</outxml>
                     <forceAjcCompile>true</forceAjcCompile>
                     <sources/><!-- this is important!-->
