@@ -28,6 +28,7 @@ import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.toolkit.intellij.webapp.WebAppCreationDialog;
+import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTask;
 import com.microsoft.azure.toolkit.lib.common.task.AzureTaskManager;
@@ -105,7 +106,8 @@ public class CreateWebAppAction extends NodeActionListener {
                 }
             } catch (final Exception ex) {
                 // TODO: @wangmi show error with balloon notification instead of dialog
-                DefaultLoader.getUIHelper().showError(message("webapp.create.error.title") + ex.getMessage(), message("webapp.create.error.createFailed"));
+                throw new AzureToolkitRuntimeException(message("webapp.create.error.title"), ex);
+//                DefaultLoader.getUIHelper().showError(message("webapp.create.error.title") + ex.getMessage(), message("webapp.create.error.createFailed"));
             }
         });
         AzureTaskManager.getInstance().runInModal(task);
