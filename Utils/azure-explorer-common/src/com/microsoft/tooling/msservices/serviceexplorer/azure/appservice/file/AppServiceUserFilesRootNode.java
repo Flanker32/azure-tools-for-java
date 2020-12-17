@@ -30,6 +30,8 @@ import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import com.microsoft.tooling.msservices.serviceexplorer.AzureRefreshableNode;
 import com.microsoft.tooling.msservices.serviceexplorer.Node;
+import com.microsoft.tooling.msservices.serviceexplorer.NodeActionEvent;
+import com.microsoft.tooling.msservices.serviceexplorer.NodeActionListener;
 import com.microsoft.tooling.msservices.serviceexplorer.azure.webapp.WebAppModule;
 
 import javax.swing.*;
@@ -57,6 +59,23 @@ public class AppServiceUserFilesRootNode extends AzureRefreshableNode {
     @Override
     public void removeNode(final String sid, final String name, Node node) {
     }
+
+    @Override
+    protected void loadActions() {
+        this.addAction("Upload", new NodeActionListener() {
+            @Override
+            protected void actionPerformed(final NodeActionEvent e) {
+                upload();
+            }
+        });
+        super.loadActions();
+    }
+
+    @AzureOperation(value = "upload file", type = AzureOperation.Type.ACTION)
+    private void upload() {
+        DefaultLoader.getIdeHelper().uploadFileToAppService(app, getRootPath());
+    }
+
 
     @Override
     @AzureOperation(value = "reload (log)files of web app[%s]", params = {"@app.name()"}, type = AzureOperation.Type.ACTION)

@@ -37,6 +37,9 @@ import com.intellij.openapi.compiler.CompileContext;
 import com.intellij.openapi.compiler.CompileScope;
 import com.intellij.openapi.compiler.CompileStatusNotification;
 import com.intellij.openapi.compiler.CompilerManager;
+import com.intellij.openapi.fileChooser.FileChooserDescriptor;
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory;
+import com.intellij.openapi.fileChooser.FileChooserFactory;
 import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.fileEditor.FileEditorManagerListener;
@@ -57,6 +60,7 @@ import com.intellij.packaging.impl.compiler.ArtifactsWorkspaceSettings;
 import com.intellij.testFramework.LightVirtualFile;
 import com.intellij.util.messages.MessageBusConnection;
 import com.intellij.util.ui.UIUtil;
+import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.file.AppServiceFile;
 import com.microsoft.azure.toolkit.lib.appservice.file.AppServiceFileService;
 import com.microsoft.azure.toolkit.lib.common.exception.AzureToolkitRuntimeException;
@@ -80,6 +84,8 @@ import org.apache.commons.lang.StringUtils;
 import javax.swing.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -92,7 +98,11 @@ public class IDEHelperImpl implements IDEHelper {
         + "do you want to create a new file with the changed content?";
     private static final String FILE_HAS_BEEN_MODIFIED = "File '%s' has been modified since you view it, do you still want to save your changes?";
     private static final String SAVE_CHANGES = "Do you want to save your changes?";
-    public static final String FILE_HAS_BEEN_SAVED = "File %s has been saved to Azure";
+    private static final String FILE_HAS_BEEN_SAVED = "File %s has been saved to Azure";
+    private static final Key<String> APP_SERVICE_FILE_ID = new Key<>("APP_SERVICE_FILE_ID");
+    private static final String ERROR_DOWNLOADING = "Failed to download file[%s] to [%s].";
+    private static final String SUCCESS_DOWNLOADING = "File[%s] is successfully downloaded to [%s].";
+    private static final String NOTIFICATION_GROUP_ID = "Azure Plugin";
 
     @Override
     public void setApplicationProperty(@NotNull String name, @NotNull String value) {
@@ -366,10 +376,27 @@ public class IDEHelperImpl implements IDEHelper {
         return type.getIcon();
     }
 
-    private static final Key<String> APP_SERVICE_FILE_ID = new Key<>("APP_SERVICE_FILE_ID");
-    private static final String ERROR_DOWNLOADING = "Failed to download file[%s] to [%s].";
-    private static final String SUCCESS_DOWNLOADING = "File[%s] is successfully downloaded to [%s].";
-    private static final String NOTIFICATION_GROUP_ID = "Azure Plugin";
+    @Override
+    public void uploadAppServiceFile(final WebAppBase webAppBase, final String targetPath) {
+        final FileChooserDescriptor fileChooserDescriptor = FileChooserDescriptorFactory.createSingleFileDescriptor();
+        fileChooserDescriptor.setTitle("Choose file to upload");
+        final VirtualFile file = FileChooserFactory.getInstance()
+                                                   .createFileChooser(fileChooserDescriptor, (Project) getCurrentProject(), null)
+                                                   .choose((Project) getCurrentProject(), null)[0];
+        final AppServiceFileService fileService = AppServiceFileService.forApp(webAppBase);
+        final Path newFilePath = Paths.get(targetPath, file.getName());
+        if (fileService.getFileByPath(newFilePath.toString()) != null) {
+            final boolean confirm = DefaultLoader.getUIHelper().showYesNoDialog(null,
+                                                                                String.format("File %s has been exist in %s, do you want to override it?",
+                                                                                              file.getName(), targetPath),
+                                                                                APP_SERVICE_FILE_EDITING,
+                                                                                Messages.getQuestionIcon());
+            if (!confirm) {
+                return;
+            }
+        }
+
+    }
 
     @AzureOperation(
         value = "open file[%s] in editor",

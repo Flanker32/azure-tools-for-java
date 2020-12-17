@@ -23,6 +23,7 @@
 package com.microsoft.tooling.msservices.helpers;
 
 import com.google.common.util.concurrent.ListenableFuture;
+import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.toolkit.lib.appservice.file.AppServiceFile;
 import com.microsoft.azuretools.azurecommons.helpers.AzureCmdException;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
@@ -158,6 +159,10 @@ public interface IDEHelper {
     }
 
     default void openAppServiceFile(final AppServiceFile file, Object context) {
+        // do nothing in default
+    }
+
+    default void uploadFileToAppService(final WebAppBase file, final String targetPath) {
         // do nothing in default
     }
 }

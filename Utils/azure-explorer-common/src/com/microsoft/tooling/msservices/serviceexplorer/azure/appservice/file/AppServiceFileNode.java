@@ -51,7 +51,23 @@ public class AppServiceFileNode extends AzureRefreshableNode {
         this.fileService = service;
         if (this.file.getType() != AppServiceFile.Type.DIRECTORY) {
             this.addDownloadAction();
+        } else {
+            this.addUploadAction();
         }
+    }
+
+    private void addUploadAction() {
+        this.addAction("Upload", new NodeActionListener() {
+            @Override
+            protected void actionPerformed(final NodeActionEvent e) {
+                upload();
+            }
+        });
+    }
+
+    @AzureOperation(value = "upload file", type = AzureOperation.Type.ACTION)
+    private void upload() {
+        DefaultLoader.getIdeHelper().uploadFileToAppService(file.getApp(), file.getPath());
     }
 
     private void addDownloadAction() {
