@@ -41,23 +41,21 @@ public abstract class AppServiceComboBox<T extends AppServiceComboBoxModel> exte
         this.removeAllItems();
         this.addItem(defaultValue);
         subscription = this.loadItemsAsync()
-                           .subscribe(items -> DefaultLoader.getIdeHelper().invokeLater(() -> {
-                               synchronized (AppServiceComboBox.this) {
-                                   AppServiceComboBox.this.removeAllItems();
-                                   items.forEach(this::addItem);
-                                   this.resetDefaultValue(defaultValue);
-                                   this.setLoading(false);
-                               }
-                           }), (e) -> {
-                                   this.handleLoadingError(e);
-                               });
+            .subscribe(items -> DefaultLoader.getIdeHelper().invokeLater(() -> {
+                synchronized (AppServiceComboBox.this) {
+                    AppServiceComboBox.this.removeAllItems();
+                    items.forEach(this::addItem);
+                    this.resetDefaultValue(defaultValue);
+                    this.setLoading(false);
+                }
+            }), this::handleLoadingError);
     }
 
     private void resetDefaultValue(@NotNull T defaultValue) {
         final AppServiceComboBoxModel model = getItems()
-                .stream()
-                .filter(item -> AppServiceComboBoxModel.isSameApp(defaultValue, item) && item != defaultValue)
-                .findFirst().orElse(null);
+            .stream()
+            .filter(item -> AppServiceComboBoxModel.isSameApp(defaultValue, item) && item != defaultValue)
+            .findFirst().orElse(null);
         if (model != null) {
             this.setSelectedItem(model);
             this.removeItem(defaultValue);
@@ -84,7 +82,7 @@ public abstract class AppServiceComboBox<T extends AppServiceComboBoxModel> exte
     @Override
     protected ExtendableTextComponent.Extension getExtension() {
         return ExtendableTextComponent.Extension.create(
-                AllIcons.General.Add, "Create", this::createResource);
+            AllIcons.General.Add, "Create", this::createResource);
     }
 
     @Override
@@ -92,7 +90,7 @@ public abstract class AppServiceComboBox<T extends AppServiceComboBoxModel> exte
         if (item instanceof AppServiceComboBoxModel) {
             final AppServiceComboBoxModel selectedItem = (AppServiceComboBoxModel) item;
             return selectedItem.isNewCreateResource() ?
-                   String.format("(New) %s", selectedItem.getAppName()) : selectedItem.getAppName();
+                String.format("(New) %s", selectedItem.getAppName()) : selectedItem.getAppName();
         } else {
             return Objects.toString(item, StringUtils.EMPTY);
         }
@@ -121,17 +119,12 @@ public abstract class AppServiceComboBox<T extends AppServiceComboBoxModel> exte
 
         private String getAppServiceLabel(AppServiceComboBoxModel appServiceModel) {
             final String appServiceName = appServiceModel.isNewCreateResource() ?
-                                      String.format("(New) %s", appServiceModel.getAppName()) : appServiceModel.getAppName();
+                String.format("(New) %s", appServiceModel.getAppName()) : appServiceModel.getAppName();
             final String runtime = appServiceModel.getRuntime();
             final String resourceGroup = appServiceModel.getResourceGroup();
 
             return String.format("<html><div>%s</div></div><small>Runtime: %s | Resource Group: %s</small></html>",
-                    appServiceName, runtime, resourceGroup);
+                appServiceName, runtime, resourceGroup);
         }
-    }
-
-    @Override
-    protected String label() {
-        return "App Service[WebApp/Function]";
     }
 }

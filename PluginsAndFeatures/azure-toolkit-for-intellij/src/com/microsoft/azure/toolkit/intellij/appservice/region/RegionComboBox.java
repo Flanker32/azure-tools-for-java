@@ -9,6 +9,7 @@ import com.microsoft.azure.management.appservice.PricingTier;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 
@@ -51,16 +52,16 @@ public class RegionComboBox extends AzureComboBox<Region> {
 
     @NotNull
     @Override
+    @AzureOperation(
+        name = "appservice|region.list.subscription|tier",
+        params = {"@tier.toString()", "@subscription.subscriptionId()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected List<? extends Region> loadItems() throws Exception {
         if (Objects.nonNull(this.subscription)) {
             final String sid = this.subscription.subscriptionId();
             return AzureWebAppMvpModel.getInstance().getAvailableRegions(sid, tier);
         }
         return Collections.emptyList();
-    }
-
-    @Override
-    protected String label() {
-        return "Region/Location";
     }
 }

@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.mysql;
 
 import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.core.mvp.model.mysql.MySQLMvpModel;
 
@@ -16,6 +17,10 @@ public class MySQLRegionComboBox extends AzureComboBox<Region> {
 
     @NotNull
     @Override
+    @AzureOperation(
+        name = "mysql|region.list.supported",
+        type = AzureOperation.Type.SERVICE
+    )
     protected List<? extends Region> loadItems() {
         return MySQLMvpModel.listSupportedRegions();
     }
@@ -26,10 +31,5 @@ public class MySQLRegionComboBox extends AzureComboBox<Region> {
             return ((Region) item).label();
         }
         return super.getItemText(item);
-    }
-
-    @Override
-    protected String label() {
-        return "MySQL Region";
     }
 }

@@ -38,6 +38,8 @@ public abstract class AzureDialog<T> extends AzureDialogWrapper {
         if (Objects.nonNull(this.okActionListener)) {
             final T data = this.getForm().getData();
             this.okActionListener.onOk(data);
+        } else {
+            super.doOKAction();
         }
     }
 

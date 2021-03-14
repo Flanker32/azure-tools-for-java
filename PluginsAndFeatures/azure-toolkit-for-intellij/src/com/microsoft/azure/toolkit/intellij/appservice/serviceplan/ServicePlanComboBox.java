@@ -15,6 +15,7 @@ import com.microsoft.azure.management.resources.fluentcore.arm.Region;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.appservice.Draft;
 import com.microsoft.azure.toolkit.lib.appservice.DraftServicePlan;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
@@ -94,13 +95,18 @@ public class ServicePlanComboBox extends AzureComboBox<AppServicePlan> {
 
     @NotNull
     @Override
+    @AzureOperation(
+        name = "appservice|plan.list.subscription|region|os",
+        params = {"@subscription.subscriptionId()", "@region.name()", "@os.name()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected List<? extends AppServicePlan> loadItems() throws Exception {
         final List<AppServicePlan> plans = new ArrayList<>();
         if (Objects.nonNull(this.subscription)) {
             if (CollectionUtils.isNotEmpty(this.localItems)) {
                 plans.addAll(this.localItems.stream()
-                                            .filter(p -> this.subscription.equals(p.getSubscription()))
-                                            .collect(Collectors.toList()));
+                    .filter(p -> this.subscription.equals(p.getSubscription()))
+                    .collect(Collectors.toList()));
             }
             final List<AppServicePlan> remotePlans = AzureWebAppMvpModel
                 .getInstance()
@@ -140,10 +146,5 @@ public class ServicePlanComboBox extends AzureComboBox<AppServicePlan> {
             this.setValue(plan);
         });
         dialog.show();
-    }
-
-    @Override
-    protected String label() {
-        return "Service Plan";
     }
 }

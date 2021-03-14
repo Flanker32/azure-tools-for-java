@@ -8,6 +8,7 @@ package com.microsoft.azure.toolkit.intellij.webapp;
 import com.intellij.openapi.project.Project;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.toolkit.intellij.appservice.AppServiceComboBox;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azure.toolkit.lib.webapp.WebAppService;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.core.mvp.model.ResourceEx;
@@ -31,7 +32,7 @@ public class WebAppComboBox extends AppServiceComboBox<WebAppComboBoxModel> {
         webAppCreationDialog.setDeploymentVisible(false);
         webAppCreationDialog.setOkActionListener(webAppConfig -> {
             final WebAppComboBoxModel newModel =
-                    new WebAppComboBoxModel(WebAppService.convertConfig2Settings(webAppConfig));
+                new WebAppComboBoxModel(WebAppService.convertConfig2Settings(webAppConfig));
             newModel.setNewCreateResource(true);
             WebAppComboBox.this.addItem(newModel);
             WebAppComboBox.this.setSelectedItem(newModel);
@@ -42,12 +43,16 @@ public class WebAppComboBox extends AppServiceComboBox<WebAppComboBoxModel> {
 
     @NotNull
     @Override
+    @AzureOperation(
+        name = "webapp.list.detail|subscription|selected",
+        type = AzureOperation.Type.SERVICE
+    )
     protected List<WebAppComboBoxModel> loadItems() throws Exception {
         final List<ResourceEx<WebApp>> webApps = AzureWebAppMvpModel.getInstance().listAllWebApps(false);
         return webApps.stream()
-                      .filter(resource -> WebAppUtils.isJavaWebApp(resource.getResource()))
-                      .sorted((a, b) -> a.getResource().name().compareToIgnoreCase(b.getResource().name()))
-                      .map(webAppResourceEx -> new WebAppComboBoxModel(webAppResourceEx))
-                      .collect(Collectors.toList());
+            .filter(resource -> WebAppUtils.isJavaWebApp(resource.getResource()))
+            .sorted((a, b) -> a.getResource().name().compareToIgnoreCase(b.getResource().name()))
+            .map(WebAppComboBoxModel::new)
+            .collect(Collectors.toList());
     }
 }

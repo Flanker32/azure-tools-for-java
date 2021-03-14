@@ -89,7 +89,7 @@ repositories {
 configurations {
     compile.exclude module:'slf4j-api'
     compile.exclude module:'log4j'
-    compile.exclude module: "stax-api"
+    compile.exclude module:'stax-api'
     cucumberRuntime {
         extendsFrom testRuntime
     }
@@ -105,7 +105,8 @@ dependencies {
     compile 'net.minidev:json-smart:2.3'
     compile 'com.microsoft.azure:azure-client-runtime:1.7.5', { force = true }
     compile 'com.microsoft.azure:azure-client-authentication:1.7.5', { force = true }
-    aspect "com.microsoft.azure:azure-toolkit-common-lib:0.3.0-SNAPSHOT"
+    compile 'com.microsoft.azure:azure-toolkit-springcloud-lib:0.4.0-SNAPSHOT', { force = true }
+    aspect "com.microsoft.azure:azure-toolkit-common-lib:0.4.0-SNAPSHOT"
     compile 'com.microsoft.azuretools:azuretools-core:3.50.0-SNAPSHOT', {
         exclude group: "com.microsoft.azure", module: "azure-client-authentication"
         exclude group: "com.microsoft.azure", module: "azure-client-runtime"
@@ -139,6 +140,7 @@ dependencies {
 
     compile group: 'com.jcraft', name: 'jsch', version: '0.1.55'
     compile group: 'com.neovisionaries', name: 'nv-websocket-client', version: '2.9'
+    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.23'
 
     testCompile 'junit:junit:4.13'
     testCompile 'info.cukes:cucumber-junit:1.2.6'

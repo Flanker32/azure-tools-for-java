@@ -10,6 +10,7 @@ import com.microsoft.azure.management.appservice.OperatingSystem;
 import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.toolkit.lib.appservice.Draft;
 import com.microsoft.azure.toolkit.lib.appservice.MonitorConfig;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import com.microsoft.azuretools.core.mvp.model.webapp.WebAppSettingModel;
@@ -29,7 +30,7 @@ public class WebAppService {
     }
 
     @AzureOperation(name = "webapp.create_detail", params = {"$config.getName()"}, type = AzureOperation.Type.SERVICE)
-    public WebApp createWebApp(final WebAppConfig config) {
+    public IWebApp createWebApp(final WebAppConfig config) {
         final WebAppSettingModel settings = convertConfig2Settings(config);
         settings.setCreatingNew(true);
         final Map<String, String> properties = settings.getTelemetryProperties(null);
@@ -37,7 +38,7 @@ public class WebAppService {
         try {
             operation.start();
             EventUtil.logEvent(EventType.info, operation, properties);
-            return AzureWebAppMvpModel.getInstance().createWebApp(settings);
+            return AzureWebAppMvpModel.getInstance().createWebAppFromSettingModel(settings);
         } catch (final RuntimeException e) {
             EventUtil.logError(operation, ErrorType.userError, e, properties, null);
             throw e;

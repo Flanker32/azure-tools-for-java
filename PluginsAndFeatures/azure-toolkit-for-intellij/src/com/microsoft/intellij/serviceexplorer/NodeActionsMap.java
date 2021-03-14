@@ -25,8 +25,9 @@ import com.microsoft.azure.toolkit.intellij.arm.action.ExportParameterAction;
 import com.microsoft.azure.toolkit.intellij.arm.action.ExportTemplateAction;
 import com.microsoft.azure.toolkit.intellij.arm.action.UpdateDeploymentAction;
 import com.microsoft.azure.toolkit.intellij.webapp.docker.action.PushToContainerRegistryAction;
+import com.microsoft.azure.toolkit.intellij.mysql.action.LinkMySQLAction;
 import com.microsoft.azure.toolkit.intellij.redis.action.CreateRedisCacheAction;
-import com.microsoft.azure.toolkit.intellij.springcloud.action.SpringCloudStreamingLogsAction;
+import com.microsoft.azure.toolkit.intellij.springcloud.streaminglog.SpringCloudStreamingLogAction;
 import com.microsoft.intellij.serviceexplorer.azure.storage.ConfirmDialogAction;
 import com.microsoft.intellij.serviceexplorer.azure.storage.CreateQueueAction;
 import com.microsoft.intellij.serviceexplorer.azure.storage.CreateTableAction;
@@ -111,13 +112,13 @@ public class NodeActionsMap {
             .add(CreateDeploymentAction.class).build());
 
         node2Actions.put(SpringCloudAppNode.class, new ImmutableList.Builder<Class<? extends NodeActionListener>>()
-                .add(SpringCloudStreamingLogsAction.class).build());
+                .add(SpringCloudStreamingLogAction.class).build());
 
         node2Actions.put(FunctionAppNode.class, new ImmutableList.Builder<Class<? extends NodeActionListener>>()
                 .add(StartStreamingLogsAction.class).add(StopStreamingLogsAction.class).add(DeployFunctionAppAction.class).build());
 
         node2Actions.put(MySQLNode.class, new ImmutableList.Builder<Class<? extends NodeActionListener>>()
-                .add(MySQLConnectToServerAction.class).build());
+                .add(MySQLConnectToServerAction.class).add(LinkMySQLAction.class).build());
 
         node2Actions.put(WebAppNode.class, new ImmutableList.Builder<Class<? extends NodeActionListener>>()
                 .add(StartStreamingLogsAction.class).add(StopStreamingLogsAction.class).add(SSHIntoWebAppAction.class)

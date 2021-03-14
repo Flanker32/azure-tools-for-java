@@ -17,7 +17,6 @@ import static com.microsoft.intellij.ui.messages.AzureBundle.message;
 
 public class PricingTierComboBox extends AzureComboBox<PricingTier> {
 
-    private PricingTier defaultPricingTier = PricingTier.BASIC_B2;
     private List<PricingTier> pricingTierList = Collections.EMPTY_LIST;
 
     public PricingTierComboBox() {
@@ -25,7 +24,6 @@ public class PricingTierComboBox extends AzureComboBox<PricingTier> {
     }
 
     public void setDefaultPricingTier(final PricingTier defaultPricingTier) {
-        this.defaultPricingTier = defaultPricingTier;
         setValue(defaultPricingTier);
     }
 
@@ -42,10 +40,5 @@ public class PricingTierComboBox extends AzureComboBox<PricingTier> {
     @Override
     protected List<? extends PricingTier> loadItems() throws Exception {
         return pricingTierList;
-    }
-
-    @Override
-    protected String label() {
-        return "Pricing Tier";
     }
 }

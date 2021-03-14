@@ -8,10 +8,11 @@ import com.intellij.icons.AllIcons;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.intellij.function.runner.component.CreateApplicationInsightsDialog;
 import com.microsoft.azure.toolkit.lib.appservice.ApplicationInsightsConfig;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
-import com.microsoft.azure.toolkit.intellij.function.runner.component.CreateApplicationInsightsDialog;
 import com.microsoft.tooling.msservices.helpers.azure.sdk.AzureSDKManager;
 import org.apache.commons.collections.ListUtils;
 
@@ -48,15 +49,20 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
 
     @NotNull
     @Override
+    @AzureOperation(
+        name = "ai.list.subscription",
+        params = {"@subscription.subscriptionId()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected List<? extends ApplicationInsightsConfig> loadItems() throws Exception {
         final List<ApplicationInsightsConfig> newItems =
-                getItems().stream().filter(item -> item.isNewCreate()).collect(Collectors.toList());
+            getItems().stream().filter(ApplicationInsightsConfig::isNewCreate).collect(Collectors.toList());
         final List<ApplicationInsightsConfig> existingItems =
-                subscription == null ? Collections.EMPTY_LIST :
+            subscription == null ? Collections.EMPTY_LIST :
                 AzureSDKManager.getInsightsResources(subscription.subscriptionId())
-                               .stream()
-                               .map(ApplicationInsightsConfig::new)
-                               .collect(Collectors.toList());
+                    .stream()
+                    .map(ApplicationInsightsConfig::new)
+                    .collect(Collectors.toList());
         return ListUtils.union(newItems, existingItems);
     }
 
@@ -64,7 +70,7 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
     @Override
     protected ExtendableTextComponent.Extension getExtension() {
         return ExtendableTextComponent.Extension.create(
-                AllIcons.General.Add, message("appService.insights.create.tooltip"), this::onCreateApplicationInsights);
+            AllIcons.General.Add, message("appService.insights.create.tooltip"), this::onCreateApplicationInsights);
     }
 
     @Override
@@ -84,10 +90,5 @@ public class ApplicationInsightsComboBox extends AzureComboBox<ApplicationInsigh
             addItem(config);
             setSelectedItem(config);
         }
-    }
-
-    @Override
-    protected String label() {
-        return "Application Insight";
     }
 }

@@ -14,11 +14,9 @@ import com.intellij.openapi.util.Condition;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.components.fields.ExtendableTextComponent;
 import com.microsoft.azure.toolkit.lib.common.form.AzureValidationInfo;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
-import com.microsoft.intellij.ui.components.AzureArtifact;
-import com.microsoft.intellij.ui.components.AzureArtifactManager;
-import com.microsoft.intellij.ui.components.AzureArtifactType;
 import com.microsoft.tooling.msservices.components.DefaultLoader;
 import org.apache.commons.lang3.StringUtils;
 import rx.Subscription;
@@ -56,20 +54,25 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
         unsubscribeSubscription(subscription);
         this.setLoading(true);
         subscription = this.loadItemsAsync()
-                           .subscribe(items -> DefaultLoader.getIdeHelper().invokeLater(() -> {
-                               this.setItems(items);
-                               this.setLoading(false);
-                               this.resetDefaultValue(defaultArtifact);
-                           }), this::handleLoadingError);
+            .subscribe(items -> DefaultLoader.getIdeHelper().invokeLater(() -> {
+                this.setItems(items);
+                this.setLoading(false);
+                this.resetDefaultValue(defaultArtifact);
+            }), this::handleLoadingError);
     }
 
     @NotNull
     @Override
+    @AzureOperation(
+        name = "common|artifact.list.project",
+        params = {"@project.getName()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected List<? extends AzureArtifact> loadItems() throws Exception {
         return AzureArtifactManager.getInstance(project).getAllSupportedAzureArtifacts()
-                                   .stream()
-                                   .filter(azureArtifact -> !fileArtifactOnly || azureArtifact.getType() == AzureArtifactType.File)
-                                   .collect(Collectors.toList());
+            .stream()
+            .filter(azureArtifact -> !fileArtifactOnly || azureArtifact.getType() == AzureArtifactType.File)
+            .collect(Collectors.toList());
     }
 
     @Nullable
@@ -148,10 +151,5 @@ public class AzureArtifactComboBox extends AzureComboBox<AzureArtifact> {
         } else {
             this.setSelectedItem(null);
         }
-    }
-
-    @Override
-    protected String label() {
-        return "Artifact";
     }
 }

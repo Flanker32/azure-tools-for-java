@@ -30,7 +30,7 @@ import static com.microsoft.intellij.ui.messages.AzureBundle.message;
 public class MySQLConnectToServerAction extends NodeActionListener {
 
     private static final String DATABASE_TOOLS_PLUGIN_ID = "com.intellij.database";
-    public static final String ACTION_NAME = "Connect to Server";
+    public static final String ACTION_NAME = "Open by Database Tools";
     private static final String MYSQL_PATTERN_NAME = "Azure Database for MySQL - %s";
     private static final String MYSQL_DEFAULT_DRIVER = "com.mysql.cj.jdbc.Driver";
     private static final String MYSQL_PATTERN_URL = "jdbc:mysql://%s:3306?serverTimezone=UTC&useSSL=true&requireSSL=false";
@@ -38,7 +38,7 @@ public class MySQLConnectToServerAction extends NodeActionListener {
     private static final String NOT_SUPPORT_ERROR_ACTION = "note this action is only supported in Intellij Ultimate edition.";
     private static final String NOT_SUPPORT_IU_DIALOG_TITLE = "Azure Toolkit Error";
     private static final String ERROR_MESSAGE_PATTERN = "Failed to open datasource management dialog for %s";
-    private static final String ERROR_ACTION = "please try again. ";
+    private static final String ERROR_ACTION = "please try again.";
 
     private final MySQLNode node;
     private final Project project;

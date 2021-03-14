@@ -11,6 +11,7 @@ import com.microsoft.azure.management.appservice.WebAppBase;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
 import com.microsoft.azure.toolkit.lib.appservice.ProcessInfo;
 import com.microsoft.azure.toolkit.lib.appservice.jfr.FlightRecorderManager;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +32,11 @@ public class ProcessComboBox extends AzureComboBox<ProcessInfo> {
 
     @NotNull
     @Override
+    @AzureOperation(
+        name = "appservice|flight_recorder.list.app",
+        params = {"@appService.name()"},
+        type = AzureOperation.Type.SERVICE
+    )
     protected List<ProcessInfo> loadItems() throws Exception {
         if (Objects.isNull(appService)) {
             return Collections.emptyList();
@@ -42,7 +48,7 @@ public class ProcessComboBox extends AzureComboBox<ProcessInfo> {
     @Override
     protected ExtendableTextComponent.Extension getExtension() {
         return ExtendableTextComponent.Extension.create(
-                AllIcons.Actions.Refresh, message("common.refresh"), this::refreshItems);
+            AllIcons.Actions.Refresh, message("common.refresh"), this::refreshItems);
     }
 
     protected String getItemText(Object item) {
@@ -66,10 +72,5 @@ public class ProcessComboBox extends AzureComboBox<ProcessInfo> {
     @Override
     public boolean isRequired() {
         return true;
-    }
-
-    @Override
-    protected String label() {
-        return "Flight Recorder process";
     }
 }

@@ -20,10 +20,7 @@ import static com.microsoft.intellij.ui.messages.AzureBundle.message;
 
 @State(
         name = "AzureSettings",
-        storages = {
-                @Storage(file = "$PROJECT_FILE$"),
-                @Storage(file = "$PROJECT_CONFIG_DIR$/azureSettings.xml")
-        }
+        storages = {@Storage("azure/azureSettings.xml")}
 )
 public class AzureSettings implements PersistentStateComponent<AzureSettings.State> {
     private static final String PREFERENCE_DELIMITER = ";";

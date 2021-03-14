@@ -7,6 +7,7 @@ package com.microsoft.azure.toolkit.intellij.appservice.subscription;
 
 import com.microsoft.azure.management.resources.Subscription;
 import com.microsoft.azure.toolkit.intellij.common.AzureComboBox;
+import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
 import com.microsoft.azuretools.azurecommons.helpers.NotNull;
 import com.microsoft.azuretools.core.mvp.model.AzureMvpModel;
 
@@ -23,6 +24,10 @@ public class SubscriptionComboBox extends AzureComboBox<Subscription> {
 
     @NotNull
     @Override
+    @AzureOperation(
+        name = "account|subscription.list.selected",
+        type = AzureOperation.Type.SERVICE
+    )
     protected List<Subscription> loadItems() throws Exception {
         return AzureMvpModel.getInstance().getSelectedSubscriptions();
     }
@@ -33,10 +38,5 @@ public class SubscriptionComboBox extends AzureComboBox<Subscription> {
             return EMPTY_ITEM;
         }
         return ((Subscription) item).displayName();
-    }
-
-    @Override
-    protected String label() {
-        return "Subscription";
     }
 }

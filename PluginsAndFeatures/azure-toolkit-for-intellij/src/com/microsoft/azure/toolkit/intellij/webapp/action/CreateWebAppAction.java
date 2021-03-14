@@ -13,8 +13,8 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.Project;
-import com.microsoft.azure.management.appservice.WebApp;
 import com.microsoft.azure.toolkit.intellij.webapp.WebAppCreationDialog;
+import com.microsoft.azure.toolkit.lib.appservice.service.IWebApp;
 import com.microsoft.azure.toolkit.lib.common.handler.AzureExceptionHandler;
 import com.microsoft.azure.toolkit.lib.common.handler.AzureExceptionHandler.AzureExceptionAction;
 import com.microsoft.azure.toolkit.lib.common.operation.AzureOperation;
@@ -25,11 +25,11 @@ import com.microsoft.azure.toolkit.lib.webapp.WebAppConfig;
 import com.microsoft.azure.toolkit.lib.webapp.WebAppService;
 import com.microsoft.azuretools.authmanage.AuthMethodManager;
 import com.microsoft.azuretools.azurecommons.helpers.Nullable;
-import com.microsoft.intellij.actions.AzureSignInAction;
+import com.microsoft.azuretools.core.mvp.model.webapp.AzureWebAppMvpModel;
 import com.microsoft.azuretools.utils.AzureUIRefreshCore;
 import com.microsoft.azuretools.utils.AzureUIRefreshEvent;
-import com.microsoft.azuretools.utils.WebAppUtils;
 import com.microsoft.intellij.RunProcessHandler;
+import com.microsoft.intellij.actions.AzureSignInAction;
 import com.microsoft.intellij.util.AzureLoginHelper;
 import com.microsoft.tooling.msservices.serviceexplorer.AzureActionEnum;
 import com.microsoft.tooling.msservices.serviceexplorer.NodeActionEvent;
@@ -96,9 +96,9 @@ public class CreateWebAppAction extends NodeActionListener {
     }
 
     @AzureOperation(name = "webapp.create_detail", params = {"$config.getName()"}, type = AzureOperation.Type.ACTION)
-    private Single<WebApp> createWebApp(final WebAppConfig config) {
+    private Single<IWebApp> createWebApp(final WebAppConfig config) {
         final IAzureOperationTitle title = title("webapp.create_detail", config.getName());
-        final AzureTask<WebApp> task = new AzureTask<>(null, title, false, () -> {
+        final AzureTask<IWebApp> task = new AzureTask<>(null, title, false, () -> {
             final ProgressIndicator indicator = ProgressManager.getInstance().getProgressIndicator();
             indicator.setIndeterminate(true);
             return webappService.createWebApp(config);
@@ -110,7 +110,7 @@ public class CreateWebAppAction extends NodeActionListener {
     }
 
     @AzureOperation(name = "webapp.deploy_artifact", params = {"$webapp.name()"}, type = AzureOperation.Type.ACTION)
-    private void deploy(final WebApp webapp, final Path application, final Project project) {
+    private void deploy(final IWebApp webapp, final Path application, final Project project) {
         final IAzureOperationTitle title = title("webapp.deploy_artifact", webapp.name());
         final AzureTask<Void> task = new AzureTask<>(null, title, false, () -> {
             ProgressManager.getInstance().getProgressIndicator().setIndeterminate(true);
@@ -119,7 +119,7 @@ public class CreateWebAppAction extends NodeActionListener {
             final ConsoleView consoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
             processHandler.startNotify();
             consoleView.attachToProcess(processHandler);
-            WebAppUtils.deployArtifactsToAppService(webapp, application.toFile(), true, processHandler);
+            AzureWebAppMvpModel.getInstance().deployArtifactsToWebApp(webapp, application.toFile(), true, processHandler);
         });
         AzureTaskManager.getInstance().runInModalAsObservable(task).single().subscribe((none) -> {
             this.notifyDeploymentSuccess(webapp);
@@ -127,7 +127,7 @@ public class CreateWebAppAction extends NodeActionListener {
     }
 
     @AzureOperation(name = "common|explorer.refresh", type = AzureOperation.Type.TASK)
-    private void refreshAzureExplorer(WebApp app) {
+    private void refreshAzureExplorer(IWebApp app) {
         AzureTaskManager.getInstance().runLater(() -> {
             if (AzureUIRefreshCore.listeners != null) {
                 AzureUIRefreshCore.execute(new AzureUIRefreshEvent(AzureUIRefreshEvent.EventType.REFRESH, null));
@@ -135,14 +135,14 @@ public class CreateWebAppAction extends NodeActionListener {
         });
     }
 
-    private void notifyCreationSuccess(final WebApp app) {
+    private void notifyCreationSuccess(final IWebApp app) {
         final String title = message("webapp.create.success.title");
         final String message = message("webapp.create.success.message", app.name());
         final Notification notification = new Notification(NOTIFICATION_GROUP_ID, title, message, NotificationType.INFORMATION);
         Notifications.Bus.notify(notification);
     }
 
-    private void notifyDeploymentSuccess(final WebApp app) {
+    private void notifyDeploymentSuccess(final IWebApp app) {
         final String title = message("webapp.deploy.success.title");
         final String message = message("webapp.deploy.success.message", app.name());
         final Notification notification = new Notification(NOTIFICATION_GROUP_ID, title, message, NotificationType.INFORMATION);

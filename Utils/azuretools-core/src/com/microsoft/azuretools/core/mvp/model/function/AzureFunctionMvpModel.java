@@ -39,7 +39,7 @@ public class AzureFunctionMvpModel {
 
     @NotNull
     @AzureOperation(
-        name = "function.get_detail",
+        name = "function.get",
         params = {"$id|uri_to_name", "$sid"},
         type = AzureOperation.Type.SERVICE
     )
@@ -54,7 +54,7 @@ public class AzureFunctionMvpModel {
     }
 
     @AzureOperation(
-        name = "function.get_detail",
+        name = "function.get",
         params = {"$name", "$sid"},
         type = AzureOperation.Type.SERVICE
     )
@@ -62,7 +62,11 @@ public class AzureFunctionMvpModel {
         return getFunctionAppsClient(sid).getByResourceGroup(resourceGroup, name);
     }
 
-    @AzureOperation(name = "function.delete", params = {"$appId|uri_to_name", "$sid"}, type = AzureOperation.Type.SERVICE)
+    @AzureOperation(
+        name = "function.delete",
+        params = {"$appId|uri_to_name", "$sid"},
+        type = AzureOperation.Type.SERVICE
+    )
     public void deleteFunction(String sid, String appId) {
         getFunctionAppsClient(sid).deleteById(appId);
         subscriptionIdToFunctionApps.remove(sid);

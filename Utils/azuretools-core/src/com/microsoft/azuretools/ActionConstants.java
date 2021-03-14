@@ -100,6 +100,7 @@ public final class ActionConstants {
         String SHOW_PROPERTIES = OPERATION_PREFIX + "show-properties";
         String CONNECT_TO_SERVER = OPERATION_PREFIX + "connect-to-server";
         String BIND_INTO = OPERATION_PREFIX + "bind-into";
+        String LINK_TO_MODULE = OPERATION_PREFIX + "link-to-module";
     }
 
     public interface SpringCloud {
